@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, Plus, ShoppingBag } from "lucide-react";
+import { Heart, Plus, ShoppingBag, Check } from "lucide-react";
 import type { DisplayProduct } from "@/lib/catalog-presentation";
 import { formatINR } from "@/lib/money";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
@@ -43,22 +43,31 @@ export function CartButton() {
 export function ProductCard({
   product,
   wishlistMode = false,
+  variant = "default",
 }: {
   product: DisplayProduct;
   wishlistMode?: boolean;
+  variant?: "default" | "campaign";
 }) {
   const { addToBag, removeSaved } = useStorefront();
   const [busy, setBusy] = useState(false);
+  const [added, setAdded] = useState(false);
   const href =
     product.source === "demo" ? "/shop" : `/products/${product.slug}`;
   return (
-    <article className="product-card">
+    <article
+      className={`product-card ${variant === "campaign" ? "product-card-campaign" : ""} ${added ? "just-added" : ""}`}
+    >
       <div className="product-image">
         <Link href={href} aria-label={`View ${product.name}`}>
           <ResponsiveImage
             src={product.image}
             alt={product.alt}
-            sizes="(max-width: 599px) 46vw, (max-width: 1023px) 45vw, 23vw"
+            sizes={
+              variant === "campaign"
+                ? "(max-width: 767px) 44vw, (max-width: 1199px) 24vw, 16vw"
+                : "(max-width: 599px) 46vw, (max-width: 1023px) 45vw, 23vw"
+            }
           />
           {product.alternateImage ? (
             <ResponsiveImage
@@ -70,6 +79,9 @@ export function ProductCard({
           ) : null}
         </Link>
         <WishlistButton product={product} />
+        {variant === "campaign" && !product.available && (
+          <span className="tj-stock-label">Sold out</span>
+        )}
         {product.conceptImage ? (
           <span className="image-label">
             {product.source === "demo"
@@ -108,6 +120,7 @@ export function ProductCard({
           onClick={async () => {
             setBusy(true);
             const added = await addToBag(product);
+            if (added) setAdded(true);
             if (added && wishlistMode) removeSaved(product.id);
             setBusy(false);
           }}
@@ -125,7 +138,15 @@ export function ProductCard({
                   : "Out of stock"}
           </span>
           <span className="add-icon">
-            <Plus size={17} strokeWidth={1.3} aria-hidden="true" />
+            {variant === "campaign" ? (
+              added ? (
+                <Check size={17} aria-hidden="true" />
+              ) : (
+                <ShoppingBag size={17} strokeWidth={1.4} aria-hidden="true" />
+              )
+            ) : (
+              <Plus size={17} strokeWidth={1.3} aria-hidden="true" />
+            )}
           </span>
         </button>
       )}

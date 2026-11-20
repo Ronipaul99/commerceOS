@@ -2,15 +2,20 @@
 import { useId, useState } from "react";
 import { z } from "zod";
 import { ArrowRight } from "lucide-react";
-export function NewsletterForm() {
+export function NewsletterForm({
+  endpoint = null,
+}: {
+  endpoint?: string | null;
+}) {
   const id = useId();
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   return (
     <form
       className="newsletter-form"
       noValidate
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
         setNotice("");
         const email = new FormData(event.currentTarget).get("email");
@@ -23,6 +28,32 @@ export function NewsletterForm() {
           return;
         }
         setError("");
+        if (endpoint) {
+          setBusy(true);
+          try {
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: String(email).trim() }),
+              signal: AbortSignal.timeout(10000),
+            });
+            const payload: unknown = await response.json();
+            if (
+              !response.ok ||
+              !z.object({ subscribed: z.literal(true) }).safeParse(payload)
+                .success
+            )
+              throw new Error("Subscription was not confirmed.");
+            setNotice("You are subscribed to jewellery updates.");
+          } catch {
+            setError(
+              "We could not confirm your subscription. Please try again.",
+            );
+          } finally {
+            setBusy(false);
+          }
+          return;
+        }
         setNotice(
           "Thank you for your interest. Subscriptions are not open yet; your email has not been sent or saved.",
         );
@@ -37,13 +68,23 @@ export function NewsletterForm() {
           name="email"
           type="email"
           autoComplete="email"
+          spellCheck={false}
           placeholder="Your email address"
           aria-invalid={Boolean(error)}
           aria-describedby={`${id}-feedback`}
           maxLength={254}
         />
-        <button type="submit" aria-label="Preview newsletter signup">
-          Join the circle <ArrowRight size={14} aria-hidden="true" />
+        <button
+          type="submit"
+          disabled={busy}
+          aria-label={
+            endpoint
+              ? "Subscribe to jewellery updates"
+              : "Preview newsletter signup"
+          }
+        >
+          {busy ? "Subscribing..." : "Subscribe"}{" "}
+          <ArrowRight size={14} aria-hidden="true" />
         </button>
       </div>
       <div id={`${id}-feedback`}>

@@ -1,0 +1,58 @@
+[
+  {
+    "name": "tyohar",
+    "file": "apps/web/public/images/campaign/tyohar.webp",
+    "prompt": "Create a photorealistic Indian luxury jewellery campaign photograph, WIDE LANDSCAPE 3:1 composition for an ecommerce hero. A spectacular traditional gold Kundan choker necklace of large uncut clear polki-style stones surrounded by fine gold with emerald green bead drops, matching earrings; arranged on richly folded deep burgundy wine silk, antique gold tray partially visible to far right, a few pink and ivory flowers and soft glowing diyas in background. Warm cinematic lighting, extraordinary sharp jewellery detail, tactile silk, real believable fine workmanship. Jewellery occupies RIGHT 55 percent; LEFT 42 percent dark burgundy silk negative space for HTML headline, no objects in left third. Sophisticated premium Indian festive fashion campaign. No text, letters, typography, logo, watermark, UI or border. Concept campaign art, not a photograph of actual purchasable merchandise.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  },
+  {
+    "name": "diamond",
+    "file": "apps/web/public/images/campaign/diamond.webp",
+    "prompt": "Photorealistic premium Indian jewellery editorial campaign. Wide landscape 3:2. Beautiful silver-tone American Diamond statement necklace and matching floral drop earrings made of brilliant clear marquise and pear-shaped stones on folded dark wine burgundy silk. Necklace occupies right two thirds, graceful curving arrangement, meticulous high jewellery detail, warm lighting with crystalline light reflections, elegant restrained visual, richly tactile fabric, left third calm deep wine negative space suitable for HTML text. No text, logos, watermarks, typography, borders or UI. Concept campaign illustration, not actual merchandise.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  },
+  {
+    "name": "temple",
+    "file": "apps/web/public/images/campaign/temple.webp",
+    "prompt": "Photorealistic Indian heritage jewellery campaign, wide landscape 3:2 composition. Ornate antique gold-tone temple necklace with a central Lakshmi motif, tiny red and green stones and golden bead drops, matching small jhumka earrings arranged on dark warm auburn silk. Jewellery occupies right two thirds and is large in frame, marigold flowers softly blurred top right, warm brass lamp bokeh, beautiful authentic detailed traditional craftsmanship, rich bronze gold and burgundy, premium fashion campaign photograph. Left third calm dark bronze silk negative space for HTML title. No text, logos, watermark, borders or UI. Concept campaign art only, not actual merchandise.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  },
+  {
+    "name": "brace",
+    "file": "apps/web/public/images/campaign/brace.webp",
+    "prompt": "Premium photorealistic Indian jewellery campaign, wide landscape 3:1. Two ornate gold-tone Kundan bangles with clear uncut mirror-like stones, tiny fine gold beadwork and a few warm ruby accents, bangles overlapping at a diagonal on rich folded burgundy silk, close-up extraordinary believable craftsmanship. Bangles occupy RIGHT 58 percent, soft ivory jasmine at far edge, cinematic warm highlights, dark wine shadows. LEFT 40 percent rich dark burgundy negative space for HTML heading. Editorial luxury, not a catalog listing. No text, logos, watermark, typography, borders or UI. Development concept artwork, not actual merchandise.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  },
+  {
+    "name": "tyohar-mobile",
+    "file": "apps/web/public/images/campaign/tyohar-mobile.webp",
+    "prompt": "A premium Indian festive jewellery campaign photograph, PORTRAIT 4:5 for a mobile ecommerce hero. Ornate gold Kundan choker with clear uncut stones and emerald green bead drops, matching earrings, laid on deep burgundy silk in the TOP 60 percent of frame; antique brass tray and ivory jasmine at top edge, warm candle glow softly blurred. Necklace beautifully sharp, believable fine gold detail, luxe tactile wine silk. BOTTOM 35 percent uninterrupted dark burgundy silk negative space, no jewellery there, allowing an HTML headline and CTA. Warm luminous photography, refined Indian elegance. No text, logos, watermark, typography, UI or border. Concept art only, not actual merchandise.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  },
+  {
+    "name": "pearl",
+    "file": "apps/web/public/images/campaign/pearl.webp",
+    "prompt": "Photorealistic premium jewellery editorial still life, square composition. A luxurious three-strand ivory pearl necklace with delicate gold connectors and small gold pendant, with a pair of pearl drop earrings, beautifully arranged on warm soft blush peach silk. Jewellery centered filling 70 percent, a few ivory petals at edges, luminous natural soft light, delicate reflections, tasteful restrained premium Indian jewellery photography. No words, text, logos, watermark, borders or UI. Development campaign concept only, not actual merchandise.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  },
+  {
+    "name": "silver",
+    "file": "apps/web/public/images/campaign/silver.webp",
+    "prompt": "Photorealistic premium Indian jewellery editorial still life, square composition. Pair of intricate oxidised silver replica jhumka earrings, ornate floral filigree, tiny silver bead drops and traditional bell shapes. Centered on warm peach beige stone plinth with cream silk behind, earrings occupy 70 percent, soft warm natural light, sophisticated high-end ecommerce campaign art, amazing delicate detail. No text, logos, watermark, borders, typography or UI. Development concept artwork, not actual merchandise.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  },
+  {
+    "name": "bride",
+    "file": "apps/web/public/images/campaign/bride.webp",
+    "prompt": "Photorealistic Indian bridal jewellery editorial portrait, portrait 4:5. Adult South Asian woman with natural elegant features in a rich muted red silk sari and sheer red dupatta, wearing traditional gold Kundan choker with green bead drops, ornate earrings and a delicate maang tikka. Close-up from chest up, face in graceful three-quarter profile facing right, warm ivory and champagne softly blurred background, refined modern Indian bridal campaign, soft natural warm light, realistic skin, authentic exquisite jewelry, sophisticated fashion photography. No text, logos, watermark, border or UI. Concept campaign portrait only, not an actual customer or testimonial.",
+    "method": "Built-in image_gen; WebP delivery encoding",
+    "purpose": "Illustrative campaign concept, never an actual catalog product image"
+  }
+]

@@ -1,5 +1,8 @@
 # Stage 02 - Sculptural minimalism / editorial luxury
 
+Current approved branding is the festive burgundy/ivory redesign in homepage.css; see HOMEPAGE_REDESIGN.md. Earlier sections retain the Stage 02/03 design lineage and shared engineering conventions.
+
+
 ## Reference and intent
 
 The attached desktop/mobile composite is the approved creative reference for this stage. Its image is visible in the conversation, but `design/reference/tiyas-homepage.png` is absent from the repository. The implementation follows its editorial hierarchy, pale stone palette, gold still lifes, asymmetric compositions and distinct mobile art direction. No screenshot has been used as a background or flattened page.
@@ -30,7 +33,7 @@ Locally hosted Cormorant Garamond supplies editorial headings; DM Sans supplies 
 - MobileMenu / SearchDialog shell: native modal dialog, explicit Tab/Shift-Tab loop, Escape, backdrop dismissal, scroll lock and focus restoration. Stage 03 search uses the Fastify API for products, category matches and suggestions.
 - PrimaryButton / SecondaryButton / EditorialTextLink: dark filled link, inverse outline link and minimal editorial link variants. Real destinations, visible focus, restrained hover effects.
 - ResponsiveImage: next/image with explicit sizes, aspect-ratio containers and meaningful alt text. Hero preload; other assets lazy by default.
-- ProductCard / WishlistButton / CartButton: integer INR display, explicit concept badges and identifier-only persistent cart/wishlist actions. Unavailable selections cannot enter the bag. No checkout or reservations.
+- ProductCard / WishlistButton / CartButton: integer INR display, explicit concept badges and identifier-only persistent cart/wishlist actions. Unavailable selections cannot enter the bag. Browsing actions do not reserve stock; Stage 04 checkout separately creates holds.
 - CategoryCard: semantic link, image ratio, hover crop and swipe gallery with previous/next alternatives on small screens.
 - EditorialBanner / SectionHeading: repeatable campaign and section typography.
 - NewsletterForm: labelled email, validation error/focus and truthful integration-pending feedback. No submission or storage.
@@ -46,4 +49,12 @@ Breakpoints follow the handoff's engineering conventions: mobile below 600px, ta
 
 The approved homepage composition, existing campaign art and tokens are preserved. Shopping layouts extend them in shopping.css. Category and collection navigation lead to real server-filtered catalog listings; product routes show current API data, options and image galleries. Cart/wishlist state persists as identifiers and quantities, with current prices/availability resolved by Fastify. Search uses the API. See SHOPPING.md for the exact boundaries and test setup.
 
-Newsletter integration and contact/social/policy approval remain pending. Checkout, payments, customer accounts and admin have not been added. Offline homepage concept cards preserve the composition but cannot be purchased or stored as real products.
+Newsletter integration and contact/social/policy approval remain pending. Stage 04 adds guest checkout and private confirmation using the same tokens; customer accounts and admin remain absent. Offline homepage concept cards preserve the composition but cannot be purchased or stored as real products.
+
+## Stage 04 checkout extension
+
+Checkout keeps the ivory surfaces, editorial serif hierarchy, thin dividers, square controls, visible focus and existing page gutters. The desktop quote remains alongside the form; on mobile it appears before payment/submit. Shared field validation focuses the first invalid field and clears corrected errors. Payment and development-preview states remain explicit. Confirmation shows private order snapshots and never uses predictable identifiers for access. See CHECKOUT.md for functional boundaries and screenshots.
+
+## Newly approved festive homepage
+
+The new approved reference supersedes the earlier homepage aesthetic. homepage.css centralizes burgundy/wine/ivory/blush/champagne roles and applies the shared header/footer identity while preserving shopping and checkout behavior. The homepage uses the same ProductCard with a compact campaign variant, responsive native rails, art-directed Next image sources and reduced-motion aware reveals. See HOMEPAGE_REDESIGN.md for the current design basis and component conventions; earlier sections document the prior design lineage.

@@ -6,11 +6,18 @@ import type { ApiConfig } from "./config/env.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
 import { databasePlugin } from "./plugins/database.js";
 import { registerErrorHandler } from "./middleware/error-handler.js";
+import { checkoutRoutes } from "./modules/checkout/routes.js";
+import type { PaymentGateway } from "./integrations/payments.js";
 import { catalogRoutes } from "./modules/catalog/routes.js";
 
 export async function buildApp(
   config: ApiConfig,
-  options: { db?: PrismaClient; logger?: boolean } = {},
+  options: {
+    db?: PrismaClient;
+    logger?: boolean;
+    gateway?: PaymentGateway;
+    background?: boolean;
+  } = {},
 ) {
   const app = Fastify({
     bodyLimit: 64 * 1024,
@@ -58,5 +65,11 @@ export async function buildApp(
     }
   });
   await app.register(catalogRoutes, { prefix: "/api/v1" });
+  await app.register(checkoutRoutes, {
+    prefix: "/api/v1",
+    config,
+    gateway: options.gateway,
+    background: options.background,
+  });
   return app;
 }

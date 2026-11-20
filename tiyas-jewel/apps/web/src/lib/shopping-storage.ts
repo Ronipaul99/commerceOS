@@ -4,16 +4,19 @@ export const SHOPPING_STORAGE_KEY = "tiyas.shopping.v1";
 export type WishlistRef = { productId: string; slug: string };
 export type ShoppingData = {
   version: 1;
+  completedOrders: string[];
   cart: CartItemRef[];
   wishlist: WishlistRef[];
 };
 export const emptyShopping = (): ShoppingData => ({
   version: 1,
+  completedOrders: [],
   cart: [],
   wishlist: [],
 });
 const schema = z.object({
   version: z.literal(1),
+  completedOrders: z.array(z.string().max(64)).max(200).default([]),
   cart: z.array(cartItemSchema.strip()).max(50),
   wishlist: z
     .array(
@@ -78,9 +81,18 @@ export function createShoppingStore() {
       }
       emit();
     },
-    update(next: ShoppingData) {
+    update(
+      next: Omit<ShoppingData, "completedOrders"> & {
+        completedOrders?: string[];
+      },
+    ) {
       let warning = "";
-      const clean = parseShopping(JSON.stringify(next));
+      const clean = parseShopping(
+        JSON.stringify({
+          ...next,
+          completedOrders: next.completedOrders ?? current.completedOrders,
+        }),
+      );
       try {
         localStorage.setItem(SHOPPING_STORAGE_KEY, JSON.stringify(clean));
       } catch {

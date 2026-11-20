@@ -52,7 +52,9 @@ test("loads PostgreSQL products, sorts and applies URL filters with empty states
     "The Fine Ring",
   );
   const form = await filters(page, testInfo);
-  await form.getByRole("combobox", { name: "Category", exact: true }).selectOption("earrings");
+  await form
+    .getByRole("combobox", { name: "Category", exact: true })
+    .selectOption("earrings");
   await form.locator('input[name="min"]').fill("1000");
   await form.locator('input[name="max"]').fill("2000");
   await form
@@ -387,27 +389,36 @@ test("handles removed and unavailable saved cart selections without totals from 
       .first(),
   ).toBeVisible();
 });
-test("preserves the approved homepage and validates newsletter without a subscription", async ({
+test("renders the newly approved homepage and validates newsletter without a subscription", async ({
   page,
 }, testInfo) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    /The art\s*of being\s*noticed\./,
+    /Tyohar\s*Collection/,
   );
   for (const id of [
-    "shop-by-form",
-    "everyday",
-    "celebration",
-    "statement",
+    "quick-collections",
+    "tiyas-collections",
+    "new-arrivals",
+    "brace-kundan",
+    "shop-by-occasion",
+    "collection-showcases",
     "our-story",
-    "style",
-    "journal",
+    "newsletter",
   ])
     await expect(page.locator(`#${id}`)).toBeVisible();
-  await expect(page.locator("#everyday .product-card")).toHaveCount(4);
+  await expect(page.locator("#new-arrivals .product-card")).toHaveCount(6);
   await images(page);
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.documentElement.scrollHeight; y += 650) {
+      window.scrollTo({ top: y, behavior: "instant" });
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    }
+    window.scrollTo({ top: 0, behavior: "instant" });
+  });
+  await page.waitForTimeout(700); // Complete the intentionally short reveal transitions for visual capture.
   await page.screenshot({
-    path: `output/playwright/stage03-home-${testInfo.project.name}.png`,
+    path: `output/playwright/homepage-approved-${testInfo.project.name}.png`,
     fullPage: true,
     scale: "css",
   });

@@ -2,36 +2,39 @@ import Link from "next/link";
 import { FooterGroup } from "./footer-group";
 import { ScrollToTop } from "./panels";
 import { storefrontConfig } from "@/lib/storefront-config";
+import { campaignCollections } from "@/lib/homepage-config";
+import { BrandIdentity } from "./brand-mark";
 const groups = [
   {
     title: "Shop",
     links: [
+      ["All jewellery", "/shop"],
+      ["New arrivals", "/shop?sort=newest"],
       ["Earrings", "/shop/earrings"],
       ["Necklaces", "/shop/necklaces"],
-      ["Rings", "/shop/rings"],
-      ["Bracelets", "/shop/bracelets"],
+      ["Your wishlist", "/wishlist"],
     ],
   },
   {
     title: "Collections",
+    links: campaignCollections
+      .filter((_, i) => [0, 1, 4, 5].includes(i))
+      .map((c) => [c.name, `/collections/${c.slug}`]),
+  },
+  {
+    title: "Help",
     links: [
-      ["The Everyday Edit", "/collections/everyday-edit"],
-      ["The Celebration Edit", "/collections/celebration"],
-      ["Statement Pieces", "/collections/statement"],
+      ["Delivery & returns", "/info/shipping-returns"],
+      ["Styling notes", "/journal/a-little-more-statement"],
+      ["Contact information", "/info/contact"],
+      ["Your bag", "/cart"],
     ],
   },
   {
     title: "About Tiyas",
     links: [
-      ["Our story", "/#our-story"],
-      ["The Journal", "/#journal"],
-      ["Contact us", "/info/contact"],
-    ],
-  },
-  {
-    title: "Client care",
-    links: [
-      ["Shipping & returns", "/info/shipping-returns"],
+      ["Our story", "/info/our-story"],
+      ["The journal", "/journal/the-art-of-layering"],
       ["Privacy policy", "/info/privacy"],
       ["Terms & conditions", "/info/terms"],
     ],
@@ -39,50 +42,47 @@ const groups = [
 ];
 export function Footer() {
   return (
-    <footer className="site-footer">
-      <div className="shell footer-main">
-        <div className="footer-identity">
-          <Link className="footer-wordmark" href="/">
-            TIYAS JEWEL
+    <footer className="site-footer tj-footer">
+      <div className="tj-shell tj-footer-main">
+        <div className="tj-footer-identity">
+          <Link href="/" aria-label="Tiyas Jewel home">
+            <BrandIdentity />
           </Link>
-          <p className="eyebrow">The art of adornment</p>
           <p>
-            Considered forms.
+            Jewellery for every side of you.
             <br />
-            Unmistakably you.
+            From everyday expressions
+            <br />
+            to moments of celebration.
           </p>
-          <div className="social-links">
-            {storefrontConfig.socials.length ? (
-              storefrontConfig.socials.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {social.label}
-                </a>
-              ))
-            ) : (
-              <Link href="/info/social">
-                Follow our story <span aria-hidden="true">&#8599;</span>
-              </Link>
-            )}
+          {storefrontConfig.contact && (
+            <a href={`mailto:${storefrontConfig.contact}`}>
+              {storefrontConfig.contact}
+            </a>
+          )}
+          <div className="tj-socials">
+            {storefrontConfig.socials.map((s) => (
+              <a key={s.href} href={s.href} rel="noreferrer" target="_blank">
+                {s.label}
+              </a>
+            ))}
           </div>
         </div>
-        <div className="footer-groups">
-          {groups.map((group) => (
-            <FooterGroup key={group.title} {...group} />
+        <div className="tj-footer-groups">
+          {groups.map((g) => (
+            <FooterGroup key={g.title} {...g} />
           ))}
         </div>
         <ScrollToTop />
       </div>
-      <div className="shell footer-bottom">
+      <div className="tj-shell tj-footer-bottom">
         <span>
           &copy; {new Date().getFullYear()} Tiyas Jewel. All rights reserved.
         </span>
         <span>India &middot; INR</span>
-        <span>Design preview &middot; Concept campaign imagery</span>
+        <span>
+          Campaign concepts &middot; Product imagery marked individually
+        </span>
       </div>
     </footer>
   );

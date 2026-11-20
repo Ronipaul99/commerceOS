@@ -1,0 +1,41 @@
+{
+  "method": "Built-in image_gen; Sharp delivery resize and WebP encoding only",
+  "usage": "Concept editorial imagery, not actual catalog product photos",
+  "assets": [
+    {
+      "name": "silver-promotion",
+      "prompt": "Create a photorealistic premium jewellery banner photograph, EXTRA WIDE LANDSCAPE 6:1 panorama. Pale ivory and blush pink background. On RIGHT HALF an ornate pair of traditional oxidised silver replica jhumka earrings with delicate antique floral filigree and bead drops, hanging over a weathered warm brown natural stone display, exquisitely detailed jewellery clearly visible in full. Very soft beige botanical silhouettes at far left. LEFT 42 percent is clean near-white blush ivory negative space for HTML text. Far right 12 percent pale ivory negative space for a circular HTML CTA badge. Restrained elegant soft light, muted taupe silver and blush palette. No words, text, numerals, prices, logos, labels, typography, watermarks, borders or UI. Concept campaign art only, not actual merchandise.",
+      "output": "apps/web/public/images/campaign/silver-promotion.webp"
+    },
+    {
+      "name": "occasion-festive",
+      "prompt": "Premium Indian jewellery fashion campaign photo, SQUARE composition. Adult South Asian woman in a muted mustard-yellow silk sari and small fuchsia accent, elegant swept-back dark hair with a tiny yellow flower, smiling naturally in three-quarter profile, wearing delicate traditional gold tone earrings and necklace. Frame face, shoulders and upper chest together, jewellery fully visible. Plain warm peach cream studio background, soft natural warm light, refined editorial beauty, realistic skin, no wedding veil, no text logos watermark or UI. Illustrative campaign concept, not a customer testimonial.",
+      "output": "apps/web/public/images/campaign/occasion-festive.webp"
+    },
+    {
+      "name": "occasion-everyday",
+      "prompt": "Premium modern Indian jewellery fashion campaign photo, SQUARE composition. Adult South Asian woman in an understated ivory cotton blouse, dark hair in a neat relaxed bun, wearing small delicate gold tone earrings and a fine gold chain. Face, shoulders and upper chest in frame, relaxed graceful three-quarter profile looking right, subtle natural smile. Warm peach cream plain studio background, gentle daylight, contemporary everyday Indian elegance, realistic skin, restrained makeup. No words text logos watermark or UI. Concept campaign portrait only.",
+      "output": "apps/web/public/images/campaign/occasion-everyday.webp"
+    },
+    {
+      "name": "occasion-party",
+      "prompt": "Premium Indian fashion jewellery editorial photo, SQUARE composition. Adult South Asian woman with long dark hair softly pulled back, wearing a tasteful black evening blouse and sparkling silver tone American Diamond drop earrings with a fine coordinating necklace. Side three-quarter profile looking right; head, shoulders and upper chest visible together, jewellery not cropped. Plain warm peach cream studio background, sophisticated party styling, soft warm light and natural realistic skin. No text logos watermark or UI. Concept campaign portrait only.",
+      "output": "apps/web/public/images/campaign/occasion-party.webp"
+    },
+    {
+      "name": "occasion-gifting",
+      "prompt": "Premium jewellery gifting still life, SQUARE composition. One small deep red burgundy jewellery gift box with a luxurious champagne gold satin ribbon tied in a full bow, a delicate gold tone bracelet peeking beside the closed box. Plain soft peach cream studio surface and background, refined soft shadows, polished sophisticated ecommerce editorial photography. Box occupies central 75 percent with margins. No text logos brands watermark or UI. Illustrative gifting campaign concept, not actual merchandise.",
+      "output": "apps/web/public/images/campaign/occasion-gifting.webp"
+    },
+    {
+      "name": "occasion-wedding",
+      "prompt": "Photorealistic premium Indian wedding jewellery editorial closeup, SQUARE composition. Neckline, shoulders and lower face of an adult South Asian woman wearing an ornate traditional gold Kundan choker with small clear stones and gold bead details over a soft warm ivory silk sari. Face cropped above lips intentionally, necklace fully visible and visually dominant. Plain warm peach cream softly blurred background, warm natural light, authentic detailed workmanship and realistic skin, elegant wedding styling. No text logos watermark or UI. Concept campaign only, not an actual product photograph.",
+      "output": "apps/web/public/images/campaign/occasion-wedding.webp"
+    },
+    {
+      "name": "occasion-heritage",
+      "prompt": "Photorealistic Indian heritage jewellery editorial still life, SQUARE composition. Large antique gold-tone temple necklace with finely worked Lakshmi motif, small ruby and emerald colour accents and gold bead drops, arranged upright against a softly curved ivory stone support on warm peach cream linen. Entire central pendant and necklace visible, sharp beautiful fine detail, warm restrained soft studio light. Elegant traditional jewellery campaign with plain blush cream background, no dark silk. No text logos watermark or UI. Concept artwork only, not actual merchandise.",
+      "output": "apps/web/public/images/campaign/occasion-heritage.webp"
+    }
+  ]
+}

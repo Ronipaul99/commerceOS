@@ -1,3 +1,4 @@
+import { campaignCollections } from "@/lib/homepage-config";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { slugSchema } from "@tiyas/shared";
@@ -11,10 +12,24 @@ export default async function Page({
 }) {
   const { slug } = await params;
   if (!slugSchema.safeParse(slug).success) notFound();
+  const campaign = campaignCollections.find((c) => c.slug === slug);
   const response = await serverApi()
     .collection(slug)
+    .then((response) => ({ ...response, preview: false }))
     .catch((error) => {
-      if (error instanceof ApiClientError && error.status === 404) notFound();
+      if (error instanceof ApiClientError && error.status === 404) {
+        if (!campaign) notFound();
+        return {
+          preview: true,
+          data: {
+            id: `campaign-${campaign.slug}`,
+            slug: campaign.slug,
+            name: campaign.name,
+            description:
+              "This collection is being curated. The pieces below are from our current Tiyas edit.",
+          },
+        };
+      }
       throw error;
     });
   return (
@@ -23,7 +38,10 @@ export default async function Page({
         <p className="shell shopping-loading">Preparing the collection...</p>
       }
     >
-      <CatalogPage collection={response.data} />
+      <CatalogPage
+        collection={response.data}
+        previewCollection={response.preview}
+      />
     </Suspense>
   );
 }

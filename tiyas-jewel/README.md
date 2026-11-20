@@ -1,6 +1,8 @@
-# TIYAS JEWEL - Stage 03
+# TIYAS JEWEL - Approved festive storefront
 
-A single jewellery storefront for India: Next.js App Router, a Fastify API and PostgreSQL. Stages 01-03 are implemented: the approved homepage, shop/collections, product details, API search, persistent anonymous cart and wishlist. Checkout, payments and admin remain later stages.
+A single jewellery storefront for India: Next.js App Router, a Fastify API and PostgreSQL. Stages 01-04 are implemented: the approved homepage, shopping, persistent cart/wishlist and secure guest checkout with transactional stock holds, COD and a Razorpay test adapter. Admin remains Stage 05.
+
+The newly approved festive homepage redesign is implemented on top of Stages 01-04. See [redesign notes](docs/HOMEPAGE_REDESIGN.md) for real API product composition, explicitly approved fallback groups, assets, responsive behavior and verification.
 
 ## Development and checks
 
@@ -8,7 +10,9 @@ Run `npm.cmd run dev` for web/API after configuring and migrating a dedicated da
 
 Real-database tests require explicit isolated targets. Set TEST_DATABASE_URL for `npm.cmd run test:integration` and E2E_DATABASE_URL for `npm.cmd run test:e2e`. Apply migrations/seed to that dedicated test database first. Never use a shared/live target: integration checks create and remove temporary records. The E2E runner owns API/web servers on loopback 4100/3200 and captures desktop/mobile screens under `output/playwright/`. Rebuild normally with `npm.cmd run build` before production start after E2E, because its test rewrite origin is compiled at build time.
 
-See [shopping contracts](docs/SHOPPING.md), [design system](docs/DESIGN_SYSTEM.md), [assets](docs/ASSETS.md) and [implementation results](docs/IMPLEMENTATION_STATUS.md). Product photography remains illustrative concept art pending approved catalog images. Cart quotes do not reserve stock or accept payment. Newsletter signup remains a UI-only preview.
+See [shopping contracts](docs/SHOPPING.md), [design system](docs/DESIGN_SYSTEM.md), [assets](docs/ASSETS.md) and [implementation results](docs/IMPLEMENTATION_STATUS.md). Product photography remains illustrative concept art pending approved catalog images. Guest checkout reserves stock and persists orders; browsing cart quotes remain read-only. Razorpay credentials are absent locally: browser payment testing uses a clearly labelled development simulator, not a real payment. Newsletter signup remains a UI-only preview.
+
+See [checkout/payment contracts and setup](docs/CHECKOUT.md). To try local COD set `COD_ENABLED=true` in ignored `.env`. Production refuses the development simulator; configure Razorpay test credentials for provider-account qualification.
 
 ## Requirements
 
@@ -68,13 +72,13 @@ Docker enables `NEXT_OUTPUT_STANDALONE=true` and launches the generated standalo
 | `npm.cmd run test:e2e` | Build/start isolated API/web and check real shopping flows; requires E2E_DATABASE_URL |
 | `npm.cmd run compose:up` / `compose:down` | Start / stop the container environment |
 
-For integration tests, explicitly set `$env:TEST_DATABASE_URL` to a dedicated migrated, seeded database, then run `test:integration`. Tests never fall back to `DATABASE_URL`. They briefly test invalid writes inside rolled-back transactions; they must not target a shared or live database. Playwright screenshots go to ignored `output/playwright/`. See SHOPPING.md for the Stage 03 test-server and database requirements.
+For integration tests, explicitly set `$env:TEST_DATABASE_URL` to a dedicated migrated, seeded database, then run `test:integration`. Tests never fall back to `DATABASE_URL`. They briefly test invalid writes inside rolled-back transactions; they must not target a shared or live database. Playwright screenshots go to ignored `output/playwright/`. See SHOPPING.md and CHECKOUT.md for isolated server/database requirements and fixture cleanup.
 
-## Read-only API
+## Catalog and checkout API
 
 - `GET /api/health` - database-backed readiness (200 or 503).
 - `GET /api/v1/products?page=1&limit=12` - active products, bounded pagination.
 - `GET /api/v1/products/:slug` - active product details; 404 for hidden/missing products.
 - `GET /api/v1/categories` / `collections` - active taxonomies.
 
-Responses use `{ data }`, with `{ pagination }` for products. All money is integer INR paise. Invalid input returns 400; unexpected failures return sanitized 500 responses with request IDs. No public mutations exist. See [architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), [deployment plan](docs/DEPLOYMENT_PLAN.md) and [verified implementation status](docs/IMPLEMENTATION_STATUS.md).
+Responses use `{ data }`, with `{ pagination }` for products. All money is integer INR paise. Invalid input returns 400; unexpected failures return sanitized 500 responses with request IDs. Product mutation routes remain absent. Stage 04 guest checkout/order writes are documented in [CHECKOUT.md](docs/CHECKOUT.md). See [architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), [deployment plan](docs/DEPLOYMENT_PLAN.md) and [verified implementation status](docs/IMPLEMENTATION_STATUS.md).

@@ -40,7 +40,7 @@ Prices, names, images and subtotals are never trusted from storage. Unknown stor
 
 Adding or changing quantities first calls the backend resolver. Unavailable, missing, mismatched or unselected variants are rejected; stock reductions clamp quantities and are explained. On restore and window focus the bag is revalidated. Missing/out-of-stock lines remain removable and contribute zero to the subtotal. The bag uses only server-computed integer-paise line totals/subtotal; aggregate formatting supports safe totals larger than one PostgreSQL Int. Mutations are queued and detect intervening cart changes before committing.
 
-`POST /cart/resolve` accepts no client prices. It uses a consistent read snapshot and does not write an order, persist a cart, decrement stock or make a reservation. Its CORS method allowance does not grant product mutation routes. Stage 04 must independently revalidate everything transactionally when creating an order; this stage's cart quote is not checkout authority.
+`POST /cart/resolve` accepts no client prices. It uses a consistent read snapshot and does not write an order, persist a cart, decrement stock or make a reservation. Its CORS method allowance does not grant product mutation routes. Stage 04 independently revalidates selections transactionally when creating an order; the browsing cart quote is not checkout authority. See CHECKOUT.md.
 
 ## Search and image boundaries
 

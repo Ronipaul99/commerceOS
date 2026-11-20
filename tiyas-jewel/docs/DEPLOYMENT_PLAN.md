@@ -22,3 +22,7 @@ Stage 01 provides a local environment and a production-shaped image layout. No O
 7. Record the release artifact digest, migration version, configuration scope, health results and rollback steps. Roll back the application image only when schema compatibility allows; data/schema changes need a reviewed recovery procedure.
 
 Docker is absent on the Stage 01 implementation machine. Compose runtime, image builds, volume persistence and Nginx/ARM64 operation must therefore be reported as unverified until run on an equipped host. See IMPLEMENTATION_STATUS.md for actual results.
+
+## Stage 04 prerequisites before launch
+
+Qualify real Razorpay test payments and public HTTPS signed webhooks using CHECKOUT.md; no account credentials were available during implementation. Configure merchant-approved shipping, PIN/COD and tax rules. The development adapter is forbidden under production NODE_ENV and live keys are rejected in Stage 04. Qualify proxy client-IP trust and edge throttling for the bounded single-process limiter, then define reservation/reconciliation alerts and a manual late-capture refund resolution process. No deployment is performed in this stage.

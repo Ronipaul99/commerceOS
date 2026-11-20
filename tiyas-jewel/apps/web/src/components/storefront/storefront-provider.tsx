@@ -10,11 +10,7 @@ import {
 } from "react";
 import type { CartItemRef, CartQuote, Product } from "@tiyas/shared";
 import { api } from "@/lib/api-client";
-import {
-  featuredProducts,
-  previewProducts,
-  type DisplayProduct,
-} from "@/lib/catalog-presentation";
+import type { DisplayProduct } from "@/lib/catalog-presentation";
 import {
   cartKey,
   createShoppingStore,
@@ -23,8 +19,6 @@ import {
 } from "@/lib/shopping-storage";
 type Panel = "menu" | "search" | "bag" | null;
 type State = {
-  products: DisplayProduct[];
-  catalogState: "loading" | "api" | "demo";
   saved: string[];
   wishlistRefs: WishlistRef[];
   cartRefs: CartItemRef[];
@@ -34,6 +28,8 @@ type State = {
   hydrated: boolean;
   storageWarning: string;
   panel: Panel;
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
   setPanel: (panel: Panel) => void;
   toggleSaved: (product: Product | DisplayProduct) => void;
   removeSaved: (id: string) => void;
@@ -45,6 +41,7 @@ type State = {
   removeFromBag: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => Promise<boolean>;
   refreshCart: () => void;
+  completePurchase: (items: CartItemRef[], orderNumber: string) => void;
 };
 const Context = createContext<State | null>(null);
 const emptyQuote: CartQuote = { items: [], subtotalPaise: 0, currency: "INR" };
@@ -55,10 +52,8 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     store.getSnapshot,
     store.getServerSnapshot,
   );
-  const [products, setProducts] = useState(previewProducts);
-  const [catalogState, setCatalogState] =
-    useState<State["catalogState"]>("loading");
   const [panel, setPanel] = useState<Panel>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const [busy, setBusy] = useState(false);
   const [resolved, setResolved] = useState<{
@@ -82,19 +77,6 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("focus", refresh);
     };
   }, [store]);
-  useEffect(() => {
-    const abort = new AbortController();
-    api
-      .catalog({ featured: "true", limit: "4" }, abort.signal)
-      .then((response) => {
-        setProducts(featuredProducts(response.data));
-        setCatalogState(response.data.length ? "api" : "demo");
-      })
-      .catch(() => {
-        if (!abort.signal.aborted) setCatalogState("demo");
-      });
-    return () => abort.abort();
-  }, []);
   useEffect(() => {
     if (!snapshot.hydrated || !snapshot.cart.length) return;
     const abort = new AbortController();
@@ -271,10 +253,10 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   return (
     <Context.Provider
       value={{
-        products,
-        catalogState,
         panel,
         setPanel,
+        searchTerm,
+        setSearchTerm,
         saved: snapshot.wishlist.map((item) => item.productId),
         wishlistRefs: snapshot.wishlist,
         cartRefs: snapshot.cart,
@@ -291,6 +273,25 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
         removeFromBag,
         updateQuantity,
         refreshCart: store.refresh,
+        completePurchase: (items, orderNumber) => {
+          const state = store.getSnapshot();
+          if (state.completedOrders.includes(orderNumber)) return;
+          const quantities = new Map(
+            items.map((i) => [cartKey(i), i.quantity]),
+          );
+          store.update({
+            version: 1,
+            wishlist: state.wishlist,
+            completedOrders: [
+              ...state.completedOrders.slice(-199),
+              orderNumber,
+            ],
+            cart: state.cart.flatMap((i) => {
+              const quantity = i.quantity - (quantities.get(cartKey(i)) ?? 0);
+              return quantity > 0 ? [{ ...i, quantity }] : [];
+            }),
+          });
+        },
         removeSaved: (id) => {
           const state = store.getSnapshot();
           store.update({

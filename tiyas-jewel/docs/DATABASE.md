@@ -18,7 +18,7 @@ All amounts are INR **integer paise** (`245000` = INR 2,450). The PostgreSQL sig
 
 IDs are Prisma-generated CUIDs. Slugs are lowercase hyphenated ASCII, unique per table, at most 120 characters. Timestamps are timestamptz(3); Prisma maintains updatedAt on writes. Products reference categories with RESTRICT deletion. Images/variants/memberships cascade on product deletion; memberships cascade on collection deletion. Public reads filter active flags. Stage 05 should normally archive products to preserve future order history.
 
-A product without variants uses product.stockQuantity. A product with variants uses active variants' stock for availability, and variant.pricePaise overrides the product base price when present. Product stock must not also be decremented for variant purchases. Stage 04 must finalize transactional stock checks/decrement and authoritative price calculations; Stage 01 availability is informational only. No inventory reservation or advanced stock system exists.
+A product without variants uses product.stockQuantity. A product with variants uses active variants' stock for availability, and variant.pricePaise overrides the product base price when present. Product stock must not also be decremented for variant purchases. Stage 04 implements transactional stock checks, holds, release and finalization; see CHECKOUT.md. Browsing availability remains informational and is rechecked on placement. No advanced inventory system is introduced.
 
 Images currently use `/images/...` paths, resolved on the storefront origin, with ordered positions and required alt text. The seeded SVG is an explicit photography placeholder. Stage 05 must finalize image storage/uploads and validate file type/size before extending this contract for object-storage URLs.
 
@@ -28,16 +28,18 @@ Images currently use `/images/...` paths, resolved on the storefront origin, wit
 
 The development seed now inserts 13 public products, four featured products, four categories, three collections, an archived fixture and three ring variants. Concept images are marked explicitly. Existing catalog edits are not overwritten on reseed. The configured Neon public schema was inspected empty before applying both migrations and the seed; no reset was performed. Automated test writes use a separate local database.
 
-## Reserved Stage 04 commerce design (not migrated)
+## Stage 04 commerce model (implemented)
 
 - **Order**: immutable public order number; guest contact/address snapshot; INR; integer subtotal, shipping, tax, discount and total; payment and fulfillment status kept separate; timestamps. No customer-account FK.
 - **OrderItem**: order FK; optional product/variant FK with deletion policy preserving history; immutable name/SKU/unit-price snapshots; quantity; integer line total. Catalog edits must never change previous orders.
 - **Payment**: order FK; provider (Razorpay or optional COD); provider order/payment identifiers with unique constraints; integer amount/currency; explicit verified payment state; timestamps. Persist and deduplicate verified webhook events before changing payment status.
 
-Stage 04 must define precise rounding/tax/shipping policies, idempotency, signature verification, partial/failed payment handling, stock races and the order/payment state transitions. Never trust totals or payment success sent by the browser. Admin completion after fulfillment is the minimal Stage 05 requirement; no courier or complex OMS design is authorized.
+Stage 04 implements integer rounding/shipping/tax configuration, idempotency, signatures, failures and transactional stock state transitions; see CHECKOUT.md. Never trust totals or payment success sent by the browser. Admin completion after fulfillment is the minimal Stage 05 requirement; no courier or complex OMS design is authorized.
 
 ## Local lifecycle
 
 `npm ci` generates the client without connecting. Copy/edit `.env`, start a dedicated database with `db:start`, apply checked-in SQL with `db:migrate`, then explicitly run `db:seed`. Seed is transactional and idempotent: it inserts four categories, three collections, 13 public development samples and one inactive fixture; it does not overwrite edits. It creates no admin user and refuses production NODE_ENV. Three ring variants exercise base/override prices, variant images and availability.
 
 Use DATABASE_URL for API/seed and optional DIRECT_DATABASE_URL for migrations. Make sure both URLs target the intended same database. Do not run migrate reset, db push or seed against shared/live systems. The integration suite requires a separately selected TEST_DATABASE_URL and rolls back its invalid-write checks; temporary visibility fixtures are removed in finally blocks. A persistent Docker volume survives normal shutdown. Backups, migration role separation, restore rehearsal and production credentials are Stage 06 deployment work.
+
+Migration 20261120000300_guest_checkout adds guest Order/OrderItem/Payment plus transactional PaymentWebhook deduplication. Orders include immutable address/contact/line snapshots, hashed token and request keys, zero discount, acceptance and reservation state. NEW/COMPLETED is assigned only to accepted orders. See CHECKOUT.md for constraints, indexes, expiry/reconciliation and late-payment review behavior. No commerce seed orders or admin accounts are created in the configured catalog.

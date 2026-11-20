@@ -21,9 +21,11 @@ export function rupeesToPaise(value: string): string | null {
 export function CatalogPage({
   collection,
   categorySlug,
+  previewCollection = false,
 }: {
   collection?: Collection;
   categorySlug?: string;
+  previewCollection?: boolean;
 }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -45,7 +47,7 @@ export function CatalogPage({
     ].flatMap((key) => (params.has(key) ? [[key, params.get(key)!]] : [])),
   );
   if (categorySlug) query.category = categorySlug;
-  if (collection) query.collection = collection.slug;
+  if (collection && !previewCollection) query.collection = collection.slug;
   if (!query.limit) query.limit = "12";
   const key = new URLSearchParams(query).toString();
   const [result, setResult] = useState<{
@@ -207,6 +209,7 @@ export function CatalogPage({
             "Considered forms. Personal expression. Find the piece that feels like you."}
         </p>
       </div>
+      {previewCollection && <p className="tj-preview-note"><strong>More from Tiyas</strong> &mdash; current catalogue pieces, not an assigned {collection?.name} assortment yet.</p>}
       <nav className="category-navigation" aria-label="Browse categories">
         <Link
           href={collection ? `/collections/${collection.slug}` : "/shop"}

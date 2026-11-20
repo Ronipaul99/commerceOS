@@ -163,12 +163,23 @@ export function CartContent({
           <strong>{formatINR(cart.subtotalPaise)}</strong>
         </div>
         <p>
-          Available pieces only. Delivery and any applicable taxes will be
-          confirmed when checkout opens.
+          Available pieces only. Delivery and applicable taxes are confirmed at
+          checkout.
         </p>
-        <p className="shopping-warning">
-          Checkout and payments are not available yet.
-        </p>
+        {cart.items.length > 0 &&
+        cart.items.every((line) => line.status === "ready") ? (
+          <Link
+            className="button button-primary"
+            href="/checkout"
+            onClick={onNavigate}
+          >
+            Proceed to checkout
+          </Link>
+        ) : (
+          <p className="shopping-warning">
+            Review unavailable or adjusted selections before checkout.
+          </p>
+        )}
         {drawer ? (
           <Link
             className="button button-primary"

@@ -55,3 +55,9 @@ Do not remove concept/preview disclosures until real merchandise and campaign as
 Replace files at the paths above or update `src/lib/storefront-config.ts` and the presentation mapper in `src/lib/catalog-presentation.ts`. Product API photographs take precedence when present; the foundation's catalog-placeholder.svg is never treated as an actual product photo. Remove concept badges only when the API supplies the actual approved photographs. Keep image dimensions/crops responsive and rerun the screenshot suite after replacements.
 
 Stage 03 retains the original campaign assets. Development catalog image records explicitly mark them as concept imagery; variant image references are scoped to the same product. Styling images are illustrative and do not establish actual materials or variant appearance.
+
+## Approved festive redesign
+
+Eight concept assets are under apps/web/public/images/campaign/: tyohar, tyohar-mobile, diamond, temple, brace, pearl, silver and bride (.webp). They were generated with the built-in image_gen tool and delivery-encoded to WebP; originals remain in the tool's generated-image directory. These are campaign concepts, never substituted for actual catalog product images. See homepage-campaign-prompts.json for exact final prompts and paths. Production replacements remain required.
+
+The attached approved screenshot was studied directly. The file design/reference/tiyas-homepage-approved.png was not present and should be restored for handoff. No full reference screenshot is used as website artwork.

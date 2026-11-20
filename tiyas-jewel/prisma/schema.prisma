@@ -108,5 +108,101 @@ model AdminUser {
   updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 }
 
-// Order / OrderItem / Payment design is reserved in docs/DATABASE.md.
-// No checkout, payment or admin credentials are created in Stage 01.
+
+
+enum PaymentMethod {
+  ONLINE
+  COD
+}
+enum PaymentState {
+  PENDING
+  PAID
+  FAILED
+  COD_PENDING
+}
+enum OperationalState {
+  NEW
+  COMPLETED
+}
+enum ReservationState {
+  HELD
+  FINALIZED
+  RELEASED
+}
+
+model Order {
+  id String @id @default(cuid())
+  orderNumber String @unique
+  idempotencyKey String @unique @db.Uuid
+  requestHash String @db.Char(64)
+  tokenHash String @unique @db.Char(64)
+  customerName String @db.VarChar(100)
+  customerEmail String @db.VarChar(254)
+  customerMobile String @db.VarChar(10)
+  address Json
+  currency String @default("INR") @db.VarChar(3)
+  subtotalPaise Int
+  shippingPaise Int
+  taxPaise Int
+  discountPaise Int @default(0)
+  totalPaise Int
+  taxMode String
+  taxBps Int
+  paymentMethod PaymentMethod
+  paymentStatus PaymentState
+  operationalStatus OperationalState?
+  accepted Boolean @default(false)
+  needsReview Boolean @default(false)
+  reservationState ReservationState
+  reservationExpiresAt DateTime? @db.Timestamptz(3)
+  completedAt DateTime? @db.Timestamptz(3)
+  items OrderItem[]
+  payment Payment?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([accepted, operationalStatus, createdAt])
+  @@index([reservationState, reservationExpiresAt])
+}
+model OrderItem {
+  id String @id @default(cuid())
+  orderId String
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  productId String
+  variantId String?
+  slug String
+  name String
+  variant String?
+  sku String?
+  image String?
+  concept Boolean @default(false)
+  quantity Int
+  unitPricePaise Int
+  lineTotalPaise Int
+  position Int
+  @@unique([orderId, position])
+  @@index([productId])
+}
+model Payment {
+  id String @id @default(cuid())
+  orderId String @unique
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  adapter String
+  gatewayOrderId String? @unique
+  gatewayPaymentId String? @unique
+  status PaymentState
+  amountPaise Int
+  currency String @default("INR")
+  initiationStartedAt DateTime? @db.Timestamptz(3)
+  verificationMetadata Json?
+  verifiedAt DateTime? @db.Timestamptz(3)
+  lastReconciledAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([status, lastReconciledAt])
+}
+model PaymentWebhook {
+  eventId String @id
+  bodyHash String @db.Char(64)
+  eventType String
+  processedAt DateTime @default(now()) @db.Timestamptz(3)
+}

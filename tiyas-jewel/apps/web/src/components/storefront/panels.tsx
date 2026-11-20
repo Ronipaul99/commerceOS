@@ -6,6 +6,7 @@ import type { Category, Product } from "@tiyas/shared";
 import { Search, ArrowRight, ArrowUp } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { useStorefront } from "./storefront-provider";
+import { campaignCollections } from "@/lib/homepage-config";
 import { categories } from "@/lib/storefront-config";
 import { api } from "@/lib/api-client";
 import { presentProduct } from "@/lib/catalog-presentation";
@@ -20,6 +21,16 @@ export function MobileMenu({ onClose }: { onClose: () => void }) {
         <Link href="/shop" onClick={onClose}>
           Shop all <ArrowRight size={20} aria-hidden="true" />
         </Link>
+        {campaignCollections.map((collection) => (
+          <Link
+            key={collection.slug}
+            href={`/collections/${collection.slug}`}
+            onClick={onClose}
+          >
+            {collection.name}
+            <ArrowRight size={20} aria-hidden="true" />
+          </Link>
+        ))}
         {categories.map((category) => (
           <Link
             key={category.slug}
@@ -45,15 +56,21 @@ export function MobileMenu({ onClose }: { onClose: () => void }) {
         <Link href="/#our-story" onClick={onClose}>
           Our story
         </Link>
-        <Link href="/#journal" onClick={onClose}>
+        <Link href="/journal/the-art-of-layering" onClick={onClose}>
           The Journal
         </Link>
       </nav>
     </Modal>
   );
 }
-export function SearchDialog({ onClose }: { onClose: () => void }) {
-  const [query, setQuery] = useState("");
+export function SearchDialog({
+  onClose,
+  initialQuery = "",
+}: {
+  onClose: () => void;
+  initialQuery?: string;
+}) {
+  const [query, setQuery] = useState(initialQuery);
   const [active, setActive] = useState(-1);
   const [result, setResult] = useState<{
     key: string;
@@ -210,10 +227,11 @@ export function SearchDialog({ onClose }: { onClose: () => void }) {
   );
 }
 export function StorefrontPanels() {
-  const { panel, setPanel } = useStorefront();
+  const { panel, setPanel, searchTerm } = useStorefront();
   const close = () => setPanel(null);
   if (panel === "menu") return <MobileMenu onClose={close} />;
-  if (panel === "search") return <SearchDialog onClose={close} />;
+  if (panel === "search")
+    return <SearchDialog onClose={close} initialQuery={searchTerm} />;
   if (panel === "bag")
     return (
       <Modal title="Your bag." onClose={close} side>

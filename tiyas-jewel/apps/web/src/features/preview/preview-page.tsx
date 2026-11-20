@@ -47,8 +47,8 @@ export default async function PreviewPage({
           <p className="eyebrow">The Journal / {article.category}</p>
           <h1>{article.title}</h1>
           <p className="article-copy">{article.body}</p>
-          <EditorialTextLink href="/#journal">
-            Back to the journal
+          <EditorialTextLink href="/">
+            Back to Tiyas
           </EditorialTextLink>
         </div>
         <div className="destination-image">

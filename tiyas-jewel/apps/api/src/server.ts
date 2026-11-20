@@ -9,7 +9,7 @@ loadEnv({ path: fileURLToPath(new URL("../../../.env", import.meta.url)), quiet:
 let app: FastifyInstance | undefined;
 try {
   const config = parseEnv(process.env);
-  app = await buildApp(config);
+  app = await buildApp(config, { background: true });
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.once(signal, () => { void app?.close().catch(() => { process.exitCode = 1; }); });
   }
