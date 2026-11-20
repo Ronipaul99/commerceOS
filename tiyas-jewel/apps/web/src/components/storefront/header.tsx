@@ -4,7 +4,6 @@ import { Heart, Menu, Search, ArrowUpRight } from "lucide-react";
 import { CartButton } from "./product-card";
 import { useStorefront } from "./storefront-provider";
 import { BrandIdentity } from "./brand-mark";
-import { campaignCollections } from "@/lib/homepage-config";
 function Wordmark() {
   return (
     <Link href="/" className="tj-wordmark" aria-label="Tiyas Jewel home">
@@ -98,13 +97,6 @@ export function Header() {
     <header className="site-header festival-header">
       <DesktopHeader />
       <MobileHeader />
-      <nav className="tj-collection-nav" aria-label="Jewellery collections">
-        {campaignCollections.map((c) => (
-          <Link key={c.slug} href={`/collections/${c.slug}`}>
-            {c.name}
-          </Link>
-        ))}
-      </nav>
     </header>
   );
 }

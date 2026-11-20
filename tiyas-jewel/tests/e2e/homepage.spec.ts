@@ -96,8 +96,12 @@ test("requested logo, occasion composition and Silver Replica promotion render",
     "alt",
     /Tiyas Jewels/,
   );
-  if (info.project.name === "desktop")
-    await expect(page.locator(".tj-collection-nav")).toBeVisible();
+  await expect(page.locator(".tj-collection-nav")).toHaveCount(0);
+  await expect(
+    page.locator(
+      '#quick-collections a[href="/collections/pearl-jewellery"] img',
+    ),
+  ).toHaveAttribute("src", /campaign%2Fpearl|campaign\/pearl/);
   const occasions = page.locator("#shop-by-occasion");
   await expect(occasions.locator(".tj-occasion-card")).toHaveCount(8);
   await occasions.scrollIntoViewIfNeeded();

@@ -71,7 +71,7 @@ export const campaignCollections = [
   {
     name: "Pearl Jewellery",
     slug: "pearl-jewellery",
-    image: "/images/campaign/occasion-gifting.webp",
+    image: campaignArt.pearl,
     position: "50% 50%",
     label: "Quietly luminous",
     description: "The timeless appeal of pearls.",

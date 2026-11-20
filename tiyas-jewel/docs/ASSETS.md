@@ -61,3 +61,12 @@ Stage 03 retains the original campaign assets. Development catalog image records
 Eight concept assets are under apps/web/public/images/campaign/: tyohar, tyohar-mobile, diamond, temple, brace, pearl, silver and bride (.webp). They were generated with the built-in image_gen tool and delivery-encoded to WebP; originals remain in the tool's generated-image directory. These are campaign concepts, never substituted for actual catalog product images. See homepage-campaign-prompts.json for exact final prompts and paths. Production replacements remain required.
 
 The attached approved screenshot was studied directly. The file design/reference/tiyas-homepage-approved.png was not present and should be restored for handoff. No full reference screenshot is used as website artwork.
+
+
+## Supplied logo and requested homepage corrections
+
+The supplied gold TIYAS JEWELS logo is used from apps/web/public/logo/tiyas-jewels-logo-web-optimized.webp (1200x400, transparent) in the shared header and footer. The larger transparent WebP/PNG originals remain intact. A vector master and brand usage guidance remain useful for future delivery; a replacement raster logo is no longer pending.
+
+Seven additional generated concept assets are saved under apps/web/public/images/campaign/: silver-promotion, occasion-festive, occasion-everyday, occasion-party, occasion-gifting, occasion-wedding and occasion-heritage (.webp). Exact prompts, output paths and usage are in homepage-correction-prompts.json. These illustrate occasion/campaign navigation and are not substituted for purchasable product photographs. The Silver Replica price shown in the uploaded reference was not copied because the catalog has no approved Silver Replica assortment/starting price.
+
+The updated homepage does not use the historical Stage 02 demo-padding behavior described above; all New Arrivals/showcase cards use real catalog responses with the approved More from Tiyas fallback where assignments are absent.

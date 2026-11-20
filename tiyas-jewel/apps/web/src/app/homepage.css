@@ -2248,3 +2248,42 @@ html {
     font-size: 12px;
   }
 }
+
+/* Preserve whole earrings in the narrow desktop promotion. */
+.tj-occasion-card h3 {
+  max-width: 110px;
+  font-weight: 600;
+}
+.tj-replica-promotion-badge {
+  width: 48px;
+  height: 48px;
+}
+.tj-replica-promotion-badge > span {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  .tj-replica-promotion-art {
+    inset: 0 12% 0 auto;
+    width: auto;
+    height: 100%;
+    aspect-ratio: 3;
+  }
+  .tj-replica-promotion-art img {
+    object-fit: contain;
+    object-position: center;
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      black 15%,
+      black 79%,
+      transparent 85%
+    );
+  }
+  .tj-replica-promotion-badge {
+    width: 92px;
+    height: 92px;
+  }
+  .tj-replica-promotion-badge > span {
+    font-size: 23px;
+  }
+}

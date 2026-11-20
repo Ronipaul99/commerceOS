@@ -10,7 +10,7 @@ This is a redesign of the existing Next.js storefront. Fastify catalog/cart/chec
 
 Burgundy #650F2A, wine #3F0B1B, ivory #FFF9F4, cream #F7EEE8, blush #F3DDD2, champagne #EAC9A8 and gold #C8A06B are centralized semantic roles in homepage.css. Cormorant Garamond/DM Sans remain locally hosted; the editorial italic face is added. Interface/product titles use compact sans-serif; major headings use the serif. Header/footer share the new identity across routes while existing shopping/checkout composition remains intact.
 
-- AnnouncementBar: configurable truthful messages; manually swipeable mobile strip with previous/next controls, desktop multi-message layout. No fabricated free-shipping, return-window, phone or WhatsApp claim.
+- AnnouncementBar is retained as an unused component but removed from the shared layout at the user's request. The logo/search/cart header and eight collection links remain.
 - Header / BrandIdentity / LotusMark: compact sticky mobile menu/logo/search/wishlist/bag; desktop search input and eight collection links. Submitting the desktop search carries the typed query into the existing accessible API search dialog. No account icon.
 - HeroCarousel / ArtDirectedImage: three configurable campaigns, manual buttons/dots and touch gestures; a dedicated mobile hero image; Next.js optimized art-directed picture sources, one active slide/heading, first image eager/high priority, inactive slide imagery not mounted.
 - HomeSectionHeading, editorial collection cards, ProductRail and HomeMotion: reusable presentation patterns with native scrolling, keyboard controls and restrained observer reveals.
@@ -20,7 +20,7 @@ Burgundy #650F2A, wine #3F0B1B, ivory #FFF9F4, cream #F7EEE8, blush #F3DDD2, cha
 
 ## Section order
 
-1. Announcement strip.
+1. Announcement strip removed after explicit user clarification; the page starts with the shared header.
 2. Shared header and eight-category navigation.
 3. Three-slide Tyohar/diamond/heritage hero.
 4. Eight quick collection thumbnails.
@@ -29,7 +29,7 @@ Burgundy #650F2A, wine #3F0B1B, ivory #FFF9F4, cream #F7EEE8, blush #F3DDD2, cha
 7. Brace Kundan campaign.
 8. Eight occasion cards, four/two columns by viewport.
 9. Four alternating campaign/product showcases.
-10. Configurable active promotions; currently hidden because no approved promotion exists.
+10. Silver Replica collection promotion in the supplied pale-blush reference style. No fabricated starting price or discount. Configurable discount promotions remain hidden until genuine offer data exists.
 11. Four trust points based on existing verified application behavior: considered edits, guest checkout, wishlist and clear checkout totals.
 12. Tiyas Story; no factual business history invented.
 13. Approved review carousel; currently hidden because no genuine approved reviews/ratings exist.
@@ -50,7 +50,7 @@ An unavailable API shows a recoverable shop link/message, never invented purchas
 
 Eight new campaign concepts were generated with the built-in image_gen tool, encoded as WebP and saved under apps/web/public/images/campaign/. Existing catalog images are never replaced with these campaigns. Every campaign is illustrative, and actual catalog image provenance labels remain visible. The dedicated mobile Tyohar image preserves the jewellery above the copy area. Image sizes/source sets avoid sending maximum-resolution assets to all carousels.
 
-The final prompt set and asset paths are in homepage-campaign-prompts.json. Production requires approved campaign/product photography, the actual collection assignments and assortment, the original reference file, final brand artwork, verified contact/social details and approved policy copy. Reviews/promotions require genuine approved data before enabling their configured components.
+The final prompt set and asset paths are in homepage-campaign-prompts.json. Production requires approved campaign/product photography, the actual collection assignments and assortment, the original reference file, brand usage rules/vector master, verified contact/social details and approved policy copy. Reviews/promotions require genuine approved data before enabling their configured components.
 
 ## Responsive and motion engineering
 
@@ -64,4 +64,22 @@ See IMPLEMENTATION_STATUS.md for final results. Tests cover API-backed/SSR produ
 
 Captures: output/playwright/homepage-approved-desktop.png (1440px), homepage-approved-mobile.png (390px), tablet capture, and homepage-width-{320,375,390,430,768,1024,1440,1920}.png. Full-page captures scroll through the page to trigger genuine reveals before review; reduced-motion width captures verify the static fallback. Screenshots are ignored development artifacts. No numerical Core Web Vitals or production deployment result is claimed without measurement.
 
-Final verification: TypeScript, lint and both production builds pass; 34 unit tests and 57 production-browser checks pass (six intentional duplicate viewport/link-audit skips). Final mobile and desktop captures were visually reviewed after corrections to hero containment, jewellery crop, banner readability and mobile shopping targets. The test suite exercised existing checkout/COD/development payment, cart and wishlist against dedicated local PostgreSQL. The app's normal API rewrite origin is rebuilt after the suite. Numerical Core Web Vitals remain unmeasured.
+Final verification: TypeScript, lint and both production builds pass; 34 unit tests and 60 production-browser checks pass (six intentional duplicate viewport/link-audit skips). Final mobile and desktop captures were visually reviewed after corrections to hero containment, jewellery crop, banner readability and mobile shopping targets. The test suite exercised existing checkout/COD/development payment, cart and wishlist against dedicated local PostgreSQL. The app's normal API rewrite origin is rebuilt after the suite. Numerical Core Web Vitals remain unmeasured.
+
+
+## Requested UI corrections - 20 November 2026
+
+- Replaced the temporary text/lotus wordmark with the supplied transparent gold TIYAS JEWELS artwork in header and footer. The optimized 1200x400 WebP is delivered through Next Image without altering the artwork.
+- Removed only the burgundy announcement strip, following the explicit user clarification. Logo, search, wishlist, bag, menu and eight desktop collection links remain functional.
+- Rebuilt Shop by Occasion to follow the approved reference: eight landscape peach cards, image left, readable title and circular arrow right, four columns on desktop and two on mobile. Added individual festive/everyday/party/gifting/wedding/heritage concept images and per-image focal positions; retained the bridal and office sources.
+- Added a configurable Silver Replica collection banner after the collection showcases, following the newly attached narrow reference: pale botanical blush treatment, silver jhumkas on stone, editorial italic heading and collection link. The badge is a navigation cue; the unverified reference starting price is not published.
+- Seven additional concept WebPs and exact generation prompts are recorded in homepage-correction-prompts.json. Product photography, API prices, catalog data, cart/wishlist and checkout logic are unchanged.
+
+Correction details are captured in output/playwright/homepage-occasions-{desktop,mobile}.png and homepage-promotion-{desktop,mobile}.png; full-page captures remain homepage-approved-{desktop,mobile}.png.
+
+The final correction run passes 60 browser checks with six intentional skips (2.9 minutes), plus 34 unit tests, TypeScript and lint. Final desktop/mobile full-page captures were reviewed after fitting the complete earrings into the desktop banner and reducing the mobile badge.
+
+
+## Subsequent header simplification
+
+The user later supplied a screenshot explicitly requesting removal of the eight collection links from the navbar. The shared header now contains only its primary logo/search/wishlist/bag row (and mobile menu control). This supersedes the earlier instruction to retain the desktop collection row. The quick collection gallery below the hero and collection destinations in the mobile menu/footer are preserved.
