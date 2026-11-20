@@ -70,3 +70,13 @@ The supplied gold TIYAS JEWELS logo is used from apps/web/public/logo/tiyas-jewe
 Seven additional generated concept assets are saved under apps/web/public/images/campaign/: silver-promotion, occasion-festive, occasion-everyday, occasion-party, occasion-gifting, occasion-wedding and occasion-heritage (.webp). Exact prompts, output paths and usage are in homepage-correction-prompts.json. These illustrate occasion/campaign navigation and are not substituted for purchasable product photographs. The Silver Replica price shown in the uploaded reference was not copied because the catalog has no approved Silver Replica assortment/starting price.
 
 The updated homepage does not use the historical Stage 02 demo-padding behavior described above; all New Arrivals/showcase cards use real catalog responses with the approved More from Tiyas fallback where assignments are absent.
+
+
+## Stage 05 owner uploads
+
+The owner can upload product photography through the authenticated admin API. JPEG/PNG/WebP file signatures and decoded content, dimensions and size are checked; the backend re-encodes static WebP and chooses UUID object names. Assets are stored through the local/OCI adapter, never as database binaries or arbitrary frontend URLs. Uploaded product photos use the same /images/ contract as the existing catalog through /images/uploads/:uuid.webp rewrites. Existing campaign/concept art and storefront design are preserved. Images referenced by order snapshots cannot be removed. See ADMIN.md for storage credentials, privacy and retention; real product photography still requires owner approval.
+
+
+## Desktop collection design pack
+
+Nine supplied 1086x1448 PNG references are in Tiyas_Jewel_Desktop_Collection_Designs/. Listing campaigns and thumbnails now use 49 isolated photographic crops encoded as WebP in apps/web/public/images/collections/; collection-design-assets.json records exact source rectangles and output paths. No full reference screenshot or baked-in product/price UI is displayed. These remain illustrative editorial/navigation assets, not catalog product images. Their source resolution is limited; supply original high-resolution campaign/type photographs for production. Actual product card photographs and pricing continue to come from Fastify. See COLLECTION_LISTINGS.md.

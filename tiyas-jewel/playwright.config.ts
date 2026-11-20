@@ -27,6 +27,8 @@ export default defineConfig({
         RAZORPAY_WEBHOOK_SECRET: "",
         CORS_ORIGINS: "http://127.0.0.1:3200",
         LOG_LEVEL: "warn",
+        STORAGE_ADAPTER: "local",
+        STORAGE_LOCAL_DIR: "output/verification/e2e-uploads",
       },
     },
     {
@@ -40,6 +42,7 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
+      testIgnore: "**/admin.spec.ts",
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 1000 },
@@ -47,6 +50,7 @@ export default defineConfig({
     },
     {
       name: "tablet",
+      testIgnore: "**/admin.spec.ts",
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 834, height: 1024 },
@@ -54,11 +58,22 @@ export default defineConfig({
     },
     {
       name: "mobile",
+      testIgnore: "**/admin.spec.ts",
       use: {
         ...devices["iPhone 13"],
         defaultBrowserType: "chromium",
         viewport: { width: 390, height: 844 },
       },
     },
+    ...[
+      { name: "admin-desktop", width: 1440, height: 1000 },
+      { name: "admin-tablet", width: 834, height: 1024 },
+      { name: "admin-mobile", width: 390, height: 844 },
+    ].map(({ name, width, height }) => ({
+      name,
+      testMatch: "**/admin.spec.ts",
+      dependencies: ["desktop", "tablet", "mobile"],
+      use: { ...devices["Desktop Chrome"], viewport: { width, height } },
+    })),
   ],
 });

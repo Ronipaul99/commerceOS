@@ -1,0 +1,440 @@
+import { randomUUID } from "node:crypto";
+import { Prisma, type PrismaClient } from "../../generated/prisma/client.js";
+import type { AdminProductInput } from "@tiyas/shared";
+import type { ImageStorage } from "../../integrations/image-storage.js";
+import { validateImage } from "../../integrations/image-storage.js";
+import { AdminError } from "./errors.js";
+type Tx = Prisma.TransactionClient;
+const include = {
+  category: true,
+  collections: true,
+  images: { orderBy: { position: "asc" as const } },
+  variants: { orderBy: { createdAt: "asc" as const } },
+};
+type RecordProduct = Prisma.ProductGetPayload<{ include: typeof include }>;
+function view(p: RecordProduct) {
+  return {
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    categoryId: p.categoryId,
+    category: {
+      id: p.category.id,
+      name: p.category.name,
+      slug: p.category.slug,
+      description: p.category.description,
+      active: p.category.active,
+    },
+    collectionIds: p.collections.map((c) => c.collectionId),
+    pricePaise: p.pricePaise,
+    compareAtPaise: p.compareAtPaise,
+    sku: p.sku,
+    stockQuantity: p.stockQuantity,
+    active: p.active,
+    featured: p.featured,
+    version: p.updatedAt.toISOString(),
+    images: p.images.map((i) => ({
+      id: i.id,
+      url: i.url,
+      alt: i.alt,
+      assetId: i.assetId,
+      concept: i.concept,
+      position: i.position,
+    })),
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      name: v.name,
+      sku: v.sku,
+      pricePaise: v.pricePaise,
+      stockQuantity: v.stockQuantity,
+      active: v.active,
+      imageRef: v.imageId,
+      version: v.updatedAt.toISOString(),
+    })),
+  };
+}
+export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
+  async function get(id: string) {
+    const p = await db.product.findUnique({ where: { id }, include });
+    if (!p) throw new AdminError("NOT_FOUND", "Product not found.", 404);
+    return { data: view(p) };
+  }
+  async function list(q: {
+    q: string;
+    categoryId?: string;
+    page: number;
+    limit: number;
+  }) {
+    const where: Prisma.ProductWhereInput = {
+      ...(q.categoryId ? { categoryId: q.categoryId } : {}),
+      ...(q.q
+        ? {
+            OR: [
+              { name: { contains: q.q, mode: "insensitive" } },
+              { sku: { contains: q.q, mode: "insensitive" } },
+              { slug: { contains: q.q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+    return db.$transaction(
+      async (tx) => {
+        const [rows, total] = await Promise.all([
+          tx.product.findMany({
+            where,
+            include,
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+            skip: (q.page - 1) * q.limit,
+            take: q.limit,
+          }),
+          tx.product.count({ where }),
+        ]);
+        return {
+          data: rows.map(view),
+          pagination: {
+            page: q.page,
+            limit: q.limit,
+            total,
+            totalPages: Math.ceil(total / q.limit),
+          },
+        };
+      },
+      { isolationLevel: "RepeatableRead" },
+    );
+  }
+  async function lock(tx: Tx, id: string) {
+    await tx.$queryRaw`SELECT id FROM "Product" WHERE id=${id} FOR UPDATE`;
+    await tx.$queryRaw`SELECT id FROM "ProductVariant" WHERE "productId"=${id} ORDER BY id FOR UPDATE`;
+  }
+  async function save(input: AdminProductInput, adminId: string, id?: string) {
+    return db.$transaction(
+      async (tx) => {
+        await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext('tiyas-catalog-skus'))`;
+        if (id) await lock(tx, id);
+        const existing = id
+          ? await tx.product.findUnique({ where: { id }, include })
+          : null;
+        if (id && !existing)
+          throw new AdminError("NOT_FOUND", "Product not found.", 404);
+        if (
+          existing &&
+          (input.version !== existing.updatedAt.toISOString() ||
+            existing.variants.some((v) => {
+              const submitted = input.variants.find((i) => i.id === v.id);
+              return (
+                submitted && submitted.version !== v.updatedAt.toISOString()
+              );
+            }))
+        )
+          throw new AdminError(
+            "STALE_PRODUCT",
+            "Product or stock changed. Reload before saving. Keep used variants and switch them inactive instead of removing them.",
+            409,
+          );
+        if (
+          !existing &&
+          (input.version ||
+            input.variants.some((v) => v.id || v.version) ||
+            input.images.some((i) => i.id))
+        )
+          throw new AdminError(
+            "INVALID_PRODUCT",
+            "New products cannot reference existing product images or variants.",
+          );
+        const category = await tx.category.findUnique({
+          where: { id: input.categoryId },
+        });
+        if (!category)
+          throw new AdminError(
+            "INVALID_CATEGORY",
+            "Choose an existing category.",
+          );
+        if (
+          (await tx.collection.count({
+            where: { id: { in: input.collectionIds } },
+          })) !== input.collectionIds.length
+        )
+          throw new AdminError(
+            "INVALID_COLLECTION",
+            "Choose existing collections.",
+          );
+        const assetIds = input.images
+          .flatMap((i) => (i.assetId ? [i.assetId] : []))
+          .sort();
+        if (assetIds.length)
+          await tx.$queryRaw(
+            Prisma.sql`SELECT id FROM "ImageAsset" WHERE id IN (${Prisma.join(assetIds.map((i) => Prisma.sql`${i}::uuid`))}) ORDER BY id FOR UPDATE`,
+          );
+        const assets = await tx.imageAsset.findMany({
+          where: { id: { in: assetIds }, uploaderId: adminId, image: null },
+        });
+        if (assets.length !== assetIds.length)
+          throw new AdminError(
+            "INVALID_IMAGE",
+            "An uploaded image is missing, already used or belongs to another administrator.",
+          );
+        const removedVariants =
+          existing?.variants.filter(
+            (v) => !input.variants.some((i) => i.id === v.id),
+          ) ?? [];
+        if (
+          removedVariants.length &&
+          (await tx.orderItem.count({
+            where: { variantId: { in: removedVariants.map((v) => v.id) } },
+          }))
+        )
+          throw new AdminError(
+            "VARIANT_IN_USE",
+            "A variant used by an order cannot be deleted. Set it inactive instead.",
+            409,
+          );
+        const data = {
+          name: input.name,
+          slug: input.slug,
+          description: input.description,
+          categoryId: input.categoryId,
+          pricePaise: input.pricePaise,
+          compareAtPaise: input.compareAtPaise,
+          sku: input.sku,
+          stockQuantity: input.stockQuantity,
+          active: input.active,
+          featured: input.featured,
+        };
+        // SKUs remain unique across both product and variant identifiers.
+        const skus = [input.sku, ...input.variants.map((v) => v.sku)];
+        if (
+          (await tx.product.count({
+            where: { sku: { in: skus }, ...(id ? { id: { not: id } } : {}) },
+          })) ||
+          (await tx.productVariant.count({
+            where: {
+              sku: { in: skus },
+              ...(id ? { productId: { not: id } } : {}),
+            },
+          }))
+        )
+          throw new AdminError(
+            "DUPLICATE_SKU",
+            "A SKU is already used by another product.",
+            409,
+          );
+        const p = existing
+          ? await tx.product.update({ where: { id: existing.id }, data })
+          : await tx.product.create({ data });
+        await tx.productCollection.deleteMany({ where: { productId: p.id } });
+        if (input.collectionIds.length)
+          await tx.productCollection.createMany({
+            data: input.collectionIds.map((collectionId) => ({
+              productId: p.id,
+              collectionId,
+            })),
+          });
+        // Detach variant images first; offset all existing positions to avoid unique-index collisions while reordering.
+        await tx.productVariant.updateMany({
+          where: { productId: p.id },
+          data: { imageId: null },
+        });
+        await tx.productImage.updateMany({
+          where: { productId: p.id },
+          data: { position: { increment: 1000 } },
+        });
+        const imageMap = new Map<string, string>();
+        for (const [position, image] of input.images.entries()) {
+          if (image.id) {
+            if (!existing?.images.some((i) => i.id === image.id))
+              throw new AdminError(
+                "INVALID_IMAGE",
+                "Image does not belong to this product.",
+              );
+            const i = await tx.productImage.update({
+              where: { id: image.id },
+              data: { position, alt: image.alt },
+            });
+            imageMap.set(image.id, i.id);
+          } else {
+            const asset = assets.find((a) => a.id === image.assetId)!;
+            const i = await tx.productImage.create({
+              data: {
+                productId: p.id,
+                assetId: asset.id,
+                url: `/images/uploads/${asset.id}.webp`,
+                alt: image.alt,
+                position,
+                concept: false,
+              },
+            });
+            imageMap.set(asset.id, i.id);
+          }
+        }
+        await tx.productImage.deleteMany({
+          where: { productId: p.id, position: { gte: 1000 } },
+        });
+        await tx.productVariant.deleteMany({
+          where: { id: { in: removedVariants.map((v) => v.id) } },
+        });
+        // Offset retained SKUs temporarily to permit a safe swap within the same product.
+        for (const v of existing?.variants ?? [])
+          if (!removedVariants.some((r) => r.id === v.id))
+            await tx.productVariant.update({
+              where: { id: v.id },
+              data: { sku: `pending-${randomUUID()}` },
+            });
+        for (const v of input.variants) {
+          const variantData = {
+            name: v.name,
+            sku: v.sku,
+            pricePaise: v.pricePaise,
+            stockQuantity: v.stockQuantity,
+            active: v.active,
+            imageId: v.imageRef ? imageMap.get(v.imageRef)! : null,
+          };
+          if (v.id) {
+            if (!existing?.variants.some((i) => i.id === v.id))
+              throw new AdminError(
+                "INVALID_VARIANT",
+                "Variant does not belong to this product.",
+              );
+            await tx.productVariant.update({
+              where: { id: v.id },
+              data: variantData,
+            });
+          } else
+            await tx.productVariant.create({
+              data: { ...variantData, productId: p.id },
+            });
+        }
+        return {
+          data: view(
+            (await tx.product.findUnique({ where: { id: p.id }, include }))!,
+          ),
+        };
+      },
+      { timeout: 15000 },
+    );
+  }
+  async function archive(id: string, version: string) {
+    return db.$transaction(async (tx) => {
+      await lock(tx, id);
+      const p = await tx.product.findUnique({ where: { id } });
+      if (!p) throw new AdminError("NOT_FOUND", "Product not found.", 404);
+      if (p.updatedAt.toISOString() !== version)
+        throw new AdminError(
+          "STALE_PRODUCT",
+          "Product changed. Reload before archiving.",
+          409,
+        );
+      await tx.product.update({ where: { id }, data: { active: false } });
+      return { data: { ok: true } };
+    });
+  }
+  async function remove(id: string, version: string) {
+    return db.$transaction(async (tx) => {
+      await lock(tx, id);
+      const p = await tx.product.findUnique({ where: { id } });
+      if (!p) throw new AdminError("NOT_FOUND", "Product not found.", 404);
+      if (p.updatedAt.toISOString() !== version)
+        throw new AdminError(
+          "STALE_PRODUCT",
+          "Product changed. Reload before deleting.",
+          409,
+        );
+      if (await tx.orderItem.count({ where: { productId: id } }))
+        throw new AdminError(
+          "PRODUCT_IN_USE",
+          "This product is referenced by an order. Archive it instead.",
+          409,
+        );
+      await tx.productVariant.updateMany({
+        where: { productId: id },
+        data: { imageId: null },
+      });
+      await tx.product.delete({ where: { id } });
+      return { data: { ok: true } };
+    });
+  }
+  async function upload(buffer: Buffer, adminId: string) {
+    const image = await validateImage(buffer);
+    const id = randomUUID(),
+      objectKey = `products/${id}.webp`;
+    await storage.put(objectKey, image.data);
+    try {
+      await db.imageAsset.create({
+        data: {
+          id,
+          objectKey,
+          width: image.width,
+          height: image.height,
+          bytes: image.bytes,
+          uploaderId: adminId,
+        },
+      });
+    } catch (e) {
+      await storage.remove(objectKey).catch(() => {});
+      throw e;
+    }
+    return {
+      data: {
+        id,
+        url: `/images/uploads/${id}.webp`,
+        width: image.width,
+        height: image.height,
+        bytes: image.bytes,
+      },
+    };
+  }
+  async function removeImage(id: string, adminId: string) {
+    return db.$transaction(
+      async (tx) => {
+        await tx.$queryRaw`SELECT id FROM "ImageAsset" WHERE id=${id}::uuid FOR UPDATE`;
+        const asset = await tx.imageAsset.findUnique({
+          where: { id },
+          include: { image: true },
+        });
+        if (!asset || asset.uploaderId !== adminId)
+          throw new AdminError("NOT_FOUND", "Image not found.", 404);
+        if (
+          asset.image ||
+          (await tx.orderItem.count({
+            where: { image: `/images/uploads/${id}.webp` },
+          }))
+        )
+          throw new AdminError(
+            "IMAGE_IN_USE",
+            "Remove the image from the product first. Order images are retained.",
+            409,
+          );
+        await storage.remove(asset.objectKey);
+        await tx.imageAsset.delete({ where: { id } });
+        return { data: { ok: true } };
+      },
+      { timeout: 20000 },
+    );
+  }
+  async function options() {
+    const [categories, collections] = await Promise.all([
+      db.category.findMany({
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          active: true,
+        },
+      }),
+      db.collection.findMany({
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          active: true,
+        },
+      }),
+    ]);
+    return { data: { categories, collections } };
+  }
+  return { get, list, save, archive, remove, upload, removeImage, options };
+}

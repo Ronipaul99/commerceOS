@@ -4,7 +4,7 @@ import path from "node:path";
 import { z } from "zod";
 import { createApiClient } from "./api-client";
 // Read a single server-only HTTP origin. Never inject the root database environment.
-function apiOrigin() {
+export function apiOrigin() {
   const file = loadEnv({
     path: path.resolve(process.cwd(), "../../.env"),
     processEnv: {},

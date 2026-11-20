@@ -49,7 +49,13 @@ const nextConfig: NextConfig = {
   turbopack: { root: projectRoot },
   poweredByHeader: false,
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${upstream}/api/:path*` }];
+    return [
+      { source: "/api/:path*", destination: `${upstream}/api/:path*` },
+      {
+        source: "/images/uploads/:path*",
+        destination: `${upstream}/images/uploads/:path*`,
+      },
+    ];
   },
   async headers() {
     return [

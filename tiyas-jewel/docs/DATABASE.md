@@ -43,3 +43,12 @@ Stage 04 implements integer rounding/shipping/tax configuration, idempotency, si
 Use DATABASE_URL for API/seed and optional DIRECT_DATABASE_URL for migrations. Make sure both URLs target the intended same database. Do not run migrate reset, db push or seed against shared/live systems. The integration suite requires a separately selected TEST_DATABASE_URL and rolls back its invalid-write checks; temporary visibility fixtures are removed in finally blocks. A persistent Docker volume survives normal shutdown. Backups, migration role separation, restore rehearsal and production credentials are Stage 06 deployment work.
 
 Migration 20261120000300_guest_checkout adds guest Order/OrderItem/Payment plus transactional PaymentWebhook deduplication. Orders include immutable address/contact/line snapshots, hashed token and request keys, zero discount, acceptance and reservation state. NEW/COMPLETED is assigned only to accepted orders. See CHECKOUT.md for constraints, indexes, expiry/reconciliation and late-payment review behavior. No commerce seed orders or admin accounts are created in the configured catalog.
+
+
+## Stage 05 migration: 20261120000400_minimal_admin
+
+Adds AdminSession (hashed opaque token, owner FK, expiry indexes) and ImageAsset (UUID, safe object key, uploader FK, output dimensions/size, timestamps). ProductImage gains a unique optional asset association; image binaries stay outside PostgreSQL. OrderItem now has RESTRICT product/variant foreign keys and a variant index, preserving catalog references independently of API checks. Migration application fails rather than deleting or rewriting history if pre-existing orphan references exist; review and repair those records before production deployment.
+
+Admin mutations lock products then variants in checkout's lock order, compare product/variant form versions, and serialize cross-model SKU validation using a transaction advisory lock. Unused products may be deleted; referenced products/variants must be archived/deactivated. Completion uses a conditional accepted NEW update, preserving the first completedAt on repeats. Existing order/payment acceptance and precise money constraints remain unchanged.
+
+Migration/seed verification uses explicitly configured isolated PostgreSQL, never the root .env target. See STAGE05_VERIFICATION.md for recorded results.

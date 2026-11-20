@@ -26,3 +26,10 @@ Docker is absent on the Stage 01 implementation machine. Compose runtime, image 
 ## Stage 04 prerequisites before launch
 
 Qualify real Razorpay test payments and public HTTPS signed webhooks using CHECKOUT.md; no account credentials were available during implementation. Configure merchant-approved shipping, PIN/COD and tax rules. The development adapter is forbidden under production NODE_ENV and live keys are rejected in Stage 04. Qualify proxy client-IP trust and edge throttling for the bounded single-process limiter, then define reservation/reconciliation alerts and a manual late-capture refund resolution process. No deployment is performed in this stage.
+
+
+## Stage 05 admin/storage prerequisites
+
+Apply the fourth migration after backup and historical-reference checks, then explicitly provision the owner with npm run admin:create. Do not ship a default password or automatically provision from public HTTP. Serve the single origin over HTTPS before using production admin cookies; preserve Set-Cookie and no-store headers through the proxy. Keep CORS_ORIGINS restricted to the actual storefront origin. Current in-memory rate limiting assumes one API process with no implicit trust of forwarded IPs; qualify proxy/IP and shared limits before changing topology.
+
+Production product images use a private OCI bucket through the S3 Compatibility adapter; configure only the API's OCI_* variables, least-privilege object create/read/delete permissions and no bucket/IAM administration. Use bucket-specific credentials and verify TLS, upload/read/delete, quotas, retention and recovery with a real bucket before launch. The local Compose adapter has a persistent product_images volume and a bounded Nginx upload location. Back up metadata and objects together; preserve historical order images and review aged unattached uploads. Actual OCI/ARM64/TLS runtime qualification remains Stage 06; source code and mocked adapter tests do not prove a cloud deployment.

@@ -1,4 +1,4 @@
-# Stage 01-04 architecture
+# Stage 01-05 architecture
 
 ## Boundaries
 
@@ -36,7 +36,7 @@ Successful responses use `{ data }`. Product lists include page, limit, total an
 
 Errors use `{ error: { code, message, requestId, issues? } }`. 400 denotes request validation, 404 missing resources, 500 unexpected failures. Responses and logs avoid raw database exceptions. Database readiness returns 503 if its `SELECT 1` probe fails. A disconnected database fails API startup. A bounded PostgreSQL pool and timeouts avoid indefinite connection waits. Process signals close Fastify and the pool.
 
-Fastify supplies JSON request logs and generated correlation IDs, Helmet security headers, explicit-origin CORS, a small body limit and no-store API responses. CORS is a browser policy, not authorization. Catalog mutations/admin authentication remain absent. Stage 04 adds guest checkout, payment verification and private token-gated order access; see CHECKOUT.md. No reverse-proxy client IP trust is enabled until the production proxy topology is qualified.
+Fastify supplies JSON request logs and generated correlation IDs, Helmet security headers, explicit-origin CORS, a small body limit and no-store API responses. CORS is a browser policy, not authorization. Public catalog mutations remain absent. Stage 05 adds independently authorized admin routes, revocable opaque cookie sessions and a local/OCI object-storage adapter; see ADMIN.md. Stage 04 adds guest checkout, payment verification and private token-gated order access; see CHECKOUT.md. No reverse-proxy client IP trust is enabled until the production proxy topology is qualified.
 
 ## Frontend and proxy
 
@@ -50,8 +50,13 @@ The browser client fetches same-origin `/api/...`, validates successful response
 
 ## Deferred by design
 
-Stages 02 and 03 are implemented. Stage 04 guest orders, checkout, Razorpay test integration and optional COD are implemented; real Razorpay-account qualification awaits credentials. Stage 05: minimal authenticated admin. Stage 06: live OCI/TLS deployment, backups and operational qualification. No later-stage functionality is claimed by the foundation.
+Stages 02 and 03 are implemented. Stage 04 guest orders, checkout, Razorpay test integration and optional COD are implemented; real Razorpay-account qualification awaits credentials. Stage 05 minimal authenticated products/orders administration is implemented; external OCI qualification is recorded separately. Stage 06: live OCI/TLS deployment, backups and operational qualification. No later-stage functionality is claimed by the foundation.
 
 ## Checkout boundary
 
-See CHECKOUT.md for immutable snapshots, precise totals, idempotency, token privacy, webhook handling, reservation expiry/late capture and the in-process maintenance loop. Only accepted orders receive operational state NEW. No admin, courier, queue or complex OMS is introduced.
+See CHECKOUT.md for immutable snapshots, precise totals, idempotency, token privacy, webhook handling, reservation expiry/late capture and the in-process maintenance loop. Only accepted orders receive operational state NEW. Stage 05 adds minimal authorized admin fulfillment (NEW to COMPLETED); no courier, queue or complex OMS is introduced.
+
+
+## Administration boundary
+
+The /admin Next.js segment uses a separate operational layout and the existing same-origin HTTP API, with server-side session checks and no database imports. Fastify owns cookie sessions, CSRF checks, authentication/rate limiting, every protected mutation, accepted-order metrics and completion. AdminUser remains the only identity model; AdminSession stores token hashes, and ImageAsset stores metadata/ownership while image bytes remain in local/OCI storage. Product/order foreign keys protect history. New Next/Nginx image rewrites keep uploaded images same-origin without exposing bucket credentials. See ADMIN.md for contracts and stock-edit concurrency.

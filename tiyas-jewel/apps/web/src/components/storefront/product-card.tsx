@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, Plus, ShoppingBag, Check } from "lucide-react";
+import { Heart, Plus, ShoppingBag, Check, ArrowUpRight } from "lucide-react";
 import type { DisplayProduct } from "@/lib/catalog-presentation";
 import { formatINR } from "@/lib/money";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
@@ -47,7 +47,7 @@ export function ProductCard({
 }: {
   product: DisplayProduct;
   wishlistMode?: boolean;
-  variant?: "default" | "campaign";
+  variant?: "default" | "campaign" | "listing";
 }) {
   const { addToBag, removeSaved } = useStorefront();
   const [busy, setBusy] = useState(false);
@@ -56,7 +56,7 @@ export function ProductCard({
     product.source === "demo" ? "/shop" : `/products/${product.slug}`;
   return (
     <article
-      className={`product-card ${variant === "campaign" ? "product-card-campaign" : ""} ${added ? "just-added" : ""}`}
+      className={`product-card ${variant === "campaign" ? "product-card-campaign" : variant === "listing" ? "product-card-listing" : ""} ${added ? "just-added" : ""}`}
     >
       <div className="product-image">
         <Link href={href} aria-label={`View ${product.name}`}>
@@ -64,9 +64,11 @@ export function ProductCard({
             src={product.image}
             alt={product.alt}
             sizes={
-              variant === "campaign"
-                ? "(max-width: 767px) 44vw, (max-width: 1199px) 24vw, 16vw"
-                : "(max-width: 599px) 46vw, (max-width: 1023px) 45vw, 23vw"
+              variant === "listing"
+                ? "(max-width: 767px) 46vw, (max-width: 1023px) 30vw, 25vw"
+                : variant === "campaign"
+                  ? "(max-width: 767px) 44vw, (max-width: 1199px) 24vw, 16vw"
+                  : "(max-width: 599px) 46vw, (max-width: 1023px) 45vw, 23vw"
             }
           />
           {product.alternateImage ? (
@@ -79,7 +81,7 @@ export function ProductCard({
           ) : null}
         </Link>
         <WishlistButton product={product} />
-        {variant === "campaign" && !product.available && (
+        {variant !== "default" && !product.available && (
           <span className="tj-stock-label">Sold out</span>
         )}
         {product.conceptImage ? (
@@ -91,9 +93,17 @@ export function ProductCard({
         ) : null}
       </div>
       <div className="product-details">
+        {variant === "listing" && product.raw && (
+          <span className="cl-product-category">
+            {product.raw.category.name}
+          </span>
+        )}
         <h3>
           <Link href={href}>{product.name}</Link>
         </h3>
+        {variant === "listing" && product.raw && (
+          <p className="cl-product-description">{product.raw.description}</p>
+        )}
         <p>
           {product.hasVariants ? <span>From </span> : null}
           {formatINR(product.pricePaise)}
@@ -138,7 +148,7 @@ export function ProductCard({
                   : "Out of stock"}
           </span>
           <span className="add-icon">
-            {variant === "campaign" ? (
+            {variant !== "default" ? (
               added ? (
                 <Check size={17} aria-hidden="true" />
               ) : (
@@ -149,6 +159,16 @@ export function ProductCard({
             )}
           </span>
         </button>
+      )}
+      {variant === "listing" && (
+        <Link
+          className="cl-product-view"
+          href={href}
+          aria-label={`View details for ${product.name}`}
+        >
+          View details
+          <ArrowUpRight size={14} aria-hidden="true" />
+        </Link>
       )}
     </article>
   );

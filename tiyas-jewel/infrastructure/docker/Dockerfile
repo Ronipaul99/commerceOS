@@ -30,6 +30,7 @@ COPY --from=build --chown=node:node /app/tsconfig.base.json ./tsconfig.base.json
 COPY --from=build --chown=node:node /app/prisma ./prisma
 COPY --from=build --chown=node:node /app/apps/api ./apps/api
 COPY --from=build --chown=node:node /app/packages/shared ./packages/shared
+RUN mkdir -p /app/var/uploads && chown -R node:node /app/var
 USER node
 EXPOSE 4000
 CMD ["node", "apps/api/dist/server.js"]

@@ -82,3 +82,10 @@ For integration tests, explicitly set `$env:TEST_DATABASE_URL` to a dedicated mi
 - `GET /api/v1/categories` / `collections` - active taxonomies.
 
 Responses use `{ data }`, with `{ pagination }` for products. All money is integer INR paise. Invalid input returns 400; unexpected failures return sanitized 500 responses with request IDs. Product mutation routes remain absent. Stage 04 guest checkout/order writes are documented in [CHECKOUT.md](docs/CHECKOUT.md). See [architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), [deployment plan](docs/DEPLOYMENT_PLAN.md) and [verified implementation status](docs/IMPLEMENTATION_STATUS.md).
+
+
+## Stage 05: store owner admin
+
+Visit /admin/login in the existing application. Apply migrations, then run `npm.cmd run admin:create` (PowerShell) to create the owner using hidden terminal prompts. No default credentials or public registration exist. The admin manages only products/images and accepted orders, with manual NEW ? COMPLETED fulfillment. Read [ADMIN.md](docs/ADMIN.md) for protected API/session behavior, setup, local/OCI image storage and secure deployment requirements. Production cookies require HTTPS. Test/development mode supports local HTTP; production cookie security is never disabled.
+
+Set STORAGE_ADAPTER=local for development (persistent Compose volume), or configure the private OCI adapter through backend-only OCI_* variables. Database migrations and test fixtures must use a dedicated database; never run reset/seed tests against a live store. Stage 05 verification and screenshots are recorded in docs/STAGE05_VERIFICATION.md. Stage 06 deployment is outside this implementation.

@@ -11,3 +11,4 @@ playwright-report/
 output/
 coverage/
 *.log
+var/uploads/

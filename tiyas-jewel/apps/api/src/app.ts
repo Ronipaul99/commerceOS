@@ -2,6 +2,9 @@ import Fastify from "fastify";
 import { randomUUID } from "node:crypto";
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
+import cookie from "@fastify/cookie";
+import { adminRoutes, uploadedImageRoutes } from "./modules/admin/routes.js";
+import type { ImageStorage } from "./integrations/image-storage.js";
 import type { ApiConfig } from "./config/env.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
 import { databasePlugin } from "./plugins/database.js";
@@ -17,6 +20,7 @@ export async function buildApp(
     logger?: boolean;
     gateway?: PaymentGateway;
     background?: boolean;
+    storage?: ImageStorage;
   } = {},
 ) {
   const app = Fastify({
@@ -43,9 +47,11 @@ export async function buildApp(
   });
   registerErrorHandler(app);
   await app.register(helmet);
+  await app.register(cookie);
+  app.decorateRequest("admin", null);
   await app.register(cors, {
     origin: config.CORS_ORIGINS,
-    methods: ["GET", "HEAD", "OPTIONS", "POST"],
+    methods: ["GET", "HEAD", "OPTIONS", "POST", "PUT", "DELETE"],
     credentials: false,
   });
   await app.register(databasePlugin, {
@@ -71,5 +77,11 @@ export async function buildApp(
     gateway: options.gateway,
     background: options.background,
   });
+  await app.register(adminRoutes, {
+    prefix: "/api/v1/admin",
+    config,
+    storage: options.storage,
+  });
+  await app.register(uploadedImageRoutes, { config, storage: options.storage });
   return app;
 }

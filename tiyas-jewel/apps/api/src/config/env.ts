@@ -21,6 +21,26 @@ const envSchema = z
         return false;
       }
     }),
+    ADMIN_SESSION_HOURS: z.coerce.number().int().min(1).max(24).default(8),
+    STORAGE_ADAPTER: z.enum(["local", "oci"]).default("local"),
+    STORAGE_LOCAL_DIR: z.string().min(1).default("var/uploads"),
+    OCI_S3_ENDPOINT: optionalSecret(
+      z.url().refine((v) => {
+        const u = new URL(v);
+        return (
+          u.protocol === "https:" &&
+          !u.username &&
+          !u.password &&
+          u.pathname === "/" &&
+          !u.search &&
+          !u.hash
+        );
+      }),
+    ),
+    OCI_REGION: optionalSecret(z.string().min(1)),
+    OCI_BUCKET: optionalSecret(z.string().min(1)),
+    OCI_ACCESS_KEY_ID: optionalSecret(z.string().min(1)),
+    OCI_SECRET_ACCESS_KEY: optionalSecret(z.string().min(16)),
     CORS_ORIGINS: z
       .string()
       .default("http://localhost:3000")
@@ -82,6 +102,19 @@ const envSchema = z
           : "development"),
   }))
   .superRefine((v, ctx) => {
+    if (
+      v.STORAGE_ADAPTER === "oci" &&
+      (!v.OCI_S3_ENDPOINT ||
+        !v.OCI_REGION ||
+        !v.OCI_BUCKET ||
+        !v.OCI_ACCESS_KEY_ID ||
+        !v.OCI_SECRET_ACCESS_KEY)
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["STORAGE_ADAPTER"],
+        message: "OCI configuration is required",
+      });
     if (v.NODE_ENV === "production" && v.PAYMENT_ADAPTER === "development")
       ctx.addIssue({
         code: "custom",

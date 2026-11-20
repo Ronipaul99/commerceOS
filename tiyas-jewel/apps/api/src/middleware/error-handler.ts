@@ -1,19 +1,18 @@
 import type { FastifyInstance } from "fastify";
 import { CheckoutError } from "../modules/checkout/errors.js";
 import { ZodError } from "zod";
+import { AdminError } from "../modules/admin/errors.js";
 
 export function registerErrorHandler(app: FastifyInstance) {
   app.setErrorHandler((error, request, reply) => {
-    if (error instanceof CheckoutError)
-      return reply
-        .code(error.statusCode)
-        .send({
-          error: {
-            code: error.code,
-            message: error.message,
-            requestId: request.id,
-          },
-        });
+    if (error instanceof CheckoutError || error instanceof AdminError)
+      return reply.code(error.statusCode).send({
+        error: {
+          code: error.code,
+          message: error.message,
+          requestId: request.id,
+        },
+      });
     if (error instanceof ZodError) {
       return reply.code(400).send({
         error: {
@@ -44,9 +43,22 @@ export function registerErrorHandler(app: FastifyInstance) {
       );
     return reply.code(status).send({
       error: {
-        code: status === 500 ? "INTERNAL_ERROR" : "BAD_REQUEST",
+        code:
+          status === 500
+            ? "INTERNAL_ERROR"
+            : status === 429
+              ? "RATE_LIMITED"
+              : status === 413
+                ? "REQUEST_TOO_LARGE"
+                : "BAD_REQUEST",
         message:
-          status === 500 ? "An unexpected error occurred" : "Invalid request",
+          status === 500
+            ? "An unexpected error occurred"
+            : status === 429
+              ? "Too many attempts. Please try again later."
+              : status === 413
+                ? "Request exceeds the allowed size."
+                : "Invalid request",
         requestId: request.id,
       },
     });

@@ -8,6 +8,7 @@ import "./globals.css";
 import "./shopping.css";
 import "./checkout.css";
 import "./homepage.css";
+import "./collections.css";
 
 export const metadata: Metadata = {
   title: {

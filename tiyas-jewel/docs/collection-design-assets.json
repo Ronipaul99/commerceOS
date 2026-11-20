@@ -1,0 +1,544 @@
+{
+  "method": "Lossless rectangular extraction of isolated photographic regions, followed by WebP delivery encoding. No full page or text-bearing UI screenshot is used as a page background.",
+  "records": [
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/all-hero.webp",
+      "region": {
+        "left": 500,
+        "top": 103,
+        "width": 586,
+        "height": 156
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/01_Premium_Kundan_Desktop.png",
+      "output": "apps/web/public/images/collections/premium-kundan-hero.webp",
+      "region": {
+        "left": 560,
+        "top": 104,
+        "width": 526,
+        "height": 210
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/american-diamond-hero.webp",
+      "region": {
+        "left": 505,
+        "top": 100,
+        "width": 581,
+        "height": 184
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/03_CZ_Desktop.png",
+      "output": "apps/web/public/images/collections/cz-hero.webp",
+      "region": {
+        "left": 477,
+        "top": 100,
+        "width": 609,
+        "height": 159
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/1-gram-gold-hero.webp",
+      "region": {
+        "left": 630,
+        "top": 104,
+        "width": 456,
+        "height": 217
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/05_Temple_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/temple-jewellery-hero.webp",
+      "region": {
+        "left": 500,
+        "top": 100,
+        "width": 545,
+        "height": 207
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/06_Brace_Kundan_Desktop.png",
+      "output": "apps/web/public/images/collections/brace-kundan-hero.webp",
+      "region": {
+        "left": 485,
+        "top": 102,
+        "width": 601,
+        "height": 170
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/07_Silver_Replica_Desktop.png",
+      "output": "apps/web/public/images/collections/silver-replica-hero.webp",
+      "region": {
+        "left": 500,
+        "top": 100,
+        "width": 586,
+        "height": 168
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/08_Pearl_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/pearl-jewellery-hero.webp",
+      "region": {
+        "left": 470,
+        "top": 112,
+        "width": 616,
+        "height": 180
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/premium-kundan-thumb.webp",
+      "region": {
+        "left": 256,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/american-diamond-thumb.webp",
+      "region": {
+        "left": 357,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/cz-thumb.webp",
+      "region": {
+        "left": 458,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/1-gram-gold-thumb.webp",
+      "region": {
+        "left": 559,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/temple-jewellery-thumb.webp",
+      "region": {
+        "left": 660,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/brace-kundan-thumb.webp",
+      "region": {
+        "left": 761,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/silver-replica-thumb.webp",
+      "region": {
+        "left": 862,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/00_All_Collections_Desktop.png",
+      "output": "apps/web/public/images/collections/pearl-jewellery-thumb.webp",
+      "region": {
+        "left": 963,
+        "top": 350,
+        "width": 89,
+        "height": 52
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/01_Premium_Kundan_Desktop.png",
+      "output": "apps/web/public/images/collections/premium-kundan-necklaces.webp",
+      "region": {
+        "left": 410,
+        "top": 356,
+        "width": 146,
+        "height": 74
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/01_Premium_Kundan_Desktop.png",
+      "output": "apps/web/public/images/collections/premium-kundan-earrings.webp",
+      "region": {
+        "left": 569,
+        "top": 356,
+        "width": 146,
+        "height": 74
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/premium-kundan-rings.webp",
+      "region": {
+        "left": 638,
+        "top": 387,
+        "width": 136,
+        "height": 76
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/01_Premium_Kundan_Desktop.png",
+      "output": "apps/web/public/images/collections/premium-kundan-bracelets.webp",
+      "region": {
+        "left": 727,
+        "top": 356,
+        "width": 144,
+        "height": 74
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/american-diamond-necklaces.webp",
+      "region": {
+        "left": 209,
+        "top": 387,
+        "width": 134,
+        "height": 77
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/american-diamond-earrings.webp",
+      "region": {
+        "left": 353,
+        "top": 387,
+        "width": 134,
+        "height": 77
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/american-diamond-rings.webp",
+      "region": {
+        "left": 640,
+        "top": 387,
+        "width": 134,
+        "height": 77
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/american-diamond-bracelets.webp",
+      "region": {
+        "left": 496,
+        "top": 387,
+        "width": 135,
+        "height": 77
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/03_CZ_Desktop.png",
+      "output": "apps/web/public/images/collections/cz-necklaces.webp",
+      "region": {
+        "left": 771,
+        "top": 330,
+        "width": 142,
+        "height": 68
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/03_CZ_Desktop.png",
+      "output": "apps/web/public/images/collections/cz-earrings.webp",
+      "region": {
+        "left": 346,
+        "top": 330,
+        "width": 140,
+        "height": 68
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/03_CZ_Desktop.png",
+      "output": "apps/web/public/images/collections/cz-rings.webp",
+      "region": {
+        "left": 632,
+        "top": 330,
+        "width": 140,
+        "height": 68
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/03_CZ_Desktop.png",
+      "output": "apps/web/public/images/collections/cz-bracelets.webp",
+      "region": {
+        "left": 922,
+        "top": 330,
+        "width": 140,
+        "height": 68
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/1-gram-gold-necklaces.webp",
+      "region": {
+        "left": 522,
+        "top": 417,
+        "width": 116,
+        "height": 65
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/1-gram-gold-earrings.webp",
+      "region": {
+        "left": 660,
+        "top": 417,
+        "width": 116,
+        "height": 65
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/1-gram-gold-rings.webp",
+      "region": {
+        "left": 797,
+        "top": 417,
+        "width": 116,
+        "height": 65
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/1-gram-gold-bracelets.webp",
+      "region": {
+        "left": 249,
+        "top": 417,
+        "width": 116,
+        "height": 65
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/05_Temple_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/temple-jewellery-necklaces.webp",
+      "region": {
+        "left": 225,
+        "top": 376,
+        "width": 141,
+        "height": 71
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/05_Temple_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/temple-jewellery-earrings.webp",
+      "region": {
+        "left": 530,
+        "top": 376,
+        "width": 118,
+        "height": 71
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/temple-jewellery-rings.webp",
+      "region": {
+        "left": 638,
+        "top": 387,
+        "width": 136,
+        "height": 76
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/05_Temple_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/temple-jewellery-bracelets.webp",
+      "region": {
+        "left": 659,
+        "top": 376,
+        "width": 121,
+        "height": 71
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/brace-kundan-necklaces.webp",
+      "region": {
+        "left": 249,
+        "top": 417,
+        "width": 116,
+        "height": 65
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/brace-kundan-earrings.webp",
+      "region": {
+        "left": 660,
+        "top": 417,
+        "width": 116,
+        "height": 65
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/04_One_Gram_Gold_Desktop.png",
+      "output": "apps/web/public/images/collections/brace-kundan-rings.webp",
+      "region": {
+        "left": 797,
+        "top": 417,
+        "width": 116,
+        "height": 65
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/06_Brace_Kundan_Desktop.png",
+      "output": "apps/web/public/images/collections/brace-kundan-bracelets.webp",
+      "region": {
+        "left": 232,
+        "top": 365,
+        "width": 151,
+        "height": 66
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/07_Silver_Replica_Desktop.png",
+      "output": "apps/web/public/images/collections/silver-replica-necklaces-type.webp",
+      "region": {
+        "left": 405,
+        "top": 350,
+        "width": 65,
+        "height": 46
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/07_Silver_Replica_Desktop.png",
+      "output": "apps/web/public/images/collections/silver-replica-earrings-type.webp",
+      "region": {
+        "left": 579,
+        "top": 350,
+        "width": 48,
+        "height": 46
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/silver-replica-rings.webp",
+      "region": {
+        "left": 638,
+        "top": 387,
+        "width": 136,
+        "height": 76
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/07_Silver_Replica_Desktop.png",
+      "output": "apps/web/public/images/collections/silver-replica-bracelets-type.webp",
+      "region": {
+        "left": 733,
+        "top": 350,
+        "width": 54,
+        "height": 46
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/08_Pearl_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/pearl-jewellery-necklaces.webp",
+      "region": {
+        "left": 270,
+        "top": 385,
+        "width": 112,
+        "height": 71
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/08_Pearl_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/pearl-jewellery-earrings.webp",
+      "region": {
+        "left": 524,
+        "top": 385,
+        "width": 112,
+        "height": 71
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/02_American_Diamond_Desktop.png",
+      "output": "apps/web/public/images/collections/pearl-jewellery-rings.webp",
+      "region": {
+        "left": 638,
+        "top": 387,
+        "width": 136,
+        "height": 76
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    },
+    {
+      "source": "Tiyas_Jewel_Desktop_Collection_Designs/08_Pearl_Jewellery_Desktop.png",
+      "output": "apps/web/public/images/collections/pearl-jewellery-bracelets.webp",
+      "region": {
+        "left": 780,
+        "top": 385,
+        "width": 112,
+        "height": 71
+      },
+      "usage": "Editorial navigation/campaign concept only; never a catalog product photograph"
+    }
+  ]
+}

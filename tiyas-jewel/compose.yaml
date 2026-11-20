@@ -37,6 +37,14 @@ services:
       target: api
     restart: unless-stopped
     environment:
+      ADMIN_SESSION_HOURS: ${ADMIN_SESSION_HOURS:-8}
+      STORAGE_ADAPTER: ${STORAGE_ADAPTER:-local}
+      STORAGE_LOCAL_DIR: /app/var/uploads
+      OCI_S3_ENDPOINT: ${OCI_S3_ENDPOINT:-}
+      OCI_REGION: ${OCI_REGION:-}
+      OCI_BUCKET: ${OCI_BUCKET:-}
+      OCI_ACCESS_KEY_ID: ${OCI_ACCESS_KEY_ID:-}
+      OCI_SECRET_ACCESS_KEY: ${OCI_SECRET_ACCESS_KEY:-}
       NODE_ENV: production
       API_HOST: 0.0.0.0
       API_PORT: 4000
@@ -54,6 +62,8 @@ services:
       TAX_BPS: ${TAX_BPS:-0}
       RESERVATION_MINUTES: ${RESERVATION_MINUTES:-15}
       DATABASE_URL: postgresql://${POSTGRES_USER:-tiyas}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tiyas_jewel}?schema=public
+    volumes:
+      - product_images:/app/var/uploads
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -117,4 +127,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  product_images:
   postgres_data:

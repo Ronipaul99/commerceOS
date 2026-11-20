@@ -1,6 +1,40 @@
 # Implementation status
 
-Current work: **Approved festive homepage redesign** on the existing Stage 01-04 application. The redesign is implemented and visually reviewed on desktop and mobile; all available checks pass. No Stage 05/admin work is included.
+Current work: **Collection listing UI redesign** using the nine supplied desktop references. The storefront implementation is updated and visually reviewed; the full regression passes. Stage 05 remains implemented below; no Stage 06 work is included.
+
+## Collection listing update
+
+- Reused all nine supplied reference compositions across All Collections, Premium Kundan, American Diamond, CZ, 1 Gram Gold, Temple Jewellery, Brace Kundan, Silver Replica and Pearl Jewellery. /collections is now the All Collections index; /shop and existing category/collection routes share the new presentation.
+- Added collection-specific heroes, thumbnail rails, a blush filter sidebar, active filter chips, grid/list controls, compact burgundy shopping cards and editorial/benefit/newsletter sections. Mobile uses separate image/text hero composition and two-column cards; desktop follows three/four-column reference layouts.
+- Reused real Fastify catalog data, precise INR prices, URL filtering/sorting/pagination, existing cart/wishlist/variant actions and the approved More from Tiyas fallback. Unsupported mockup filters, ratings, discounts and business claims are not published.
+- Preserved the latest header/logo decisions and homepage, PDP, checkout and admin behavior. No backend/schema/credentials or remote database changes.
+- Extracted 49 small, replaceable campaign/navigation WebPs from isolated reference photography; actual product images remain API-owned. Original high-resolution photography remains needed. See COLLECTION_LISTINGS.md and collection-design-assets.json.
+
+TypeScript/lint, both production builds and 38 unit tests pass. The complete final production browser suite reports 70 passed / eight intentional duplicate-check skips (4.5 minutes), including all nine designs at desktop/tablet/mobile and existing shopping/checkout/admin workflows. The eight-width 320-1920px sweep has no broken images or horizontal overflow. The final focused desktop/mobile collection rerun also passed after the Silver Replica crop correction (five checks, one intentional duplicate-width skip; Playwright last-run status passed with no failed tests). Desktop/mobile captures were visually reviewed after card-proportion, toolbar and photo-crop corrections. The normal production build is restored, test fixtures are clean and the isolated PostgreSQL test server is stopped. See COLLECTION_LISTINGS.md for source mapping and evidence.
+
+## Stage 05 delivered
+
+- Seven requested admin routes, a separate responsive burgundy/ivory operational layout, server-side session checks, loading/error states and keyboard-accessible confirmations.
+- Secure owner login/logout, salted scrypt password hashing, hashed opaque PostgreSQL sessions, production Secure/HttpOnly/host-only/SameSite cookies, CSRF/origin protection and login rate limiting. No public registration or default admin credentials. Explicit secure initial creation script: npm run admin:create.
+- PostgreSQL-backed product/active/new/completed counts and recent accepted orders. Pending, failed and needs-review payments never enter actionable lists/counts.
+- Search/category-filtered products, add/edit/archive/delete, SKU/slug/price/stock/variant/collection/featured/active controls and upload/preview/reorder/replace/remove images.
+- Backend-owned local/OCI image adapter; file-signature/decode/dimension/size validation, WebP normalization, safe UUID object keys, metadata-only database records and same-origin image delivery. Existing product/concept sources remain intact.
+- Product/variant locks and form-version checks prevent stale stock edits. Database foreign keys protect products and variants used by historical orders. Historical order image objects are retained.
+- Authorized order detail with accessible phone/address and one idempotent NEW-to-COMPLETED manual fulfillment action, preserving the first completion timestamp. No courier/delivery-verification/refund workflows.
+- Fourth migration, API contracts, storage/session environment examples, persistent local image volume and bounded proxy upload routing. No remote database migration, live owner provisioning or deployment is performed.
+
+## Stage 05 verification
+
+TypeScript, lint and frontend/backend production builds pass. There are 38 passing unit tests and 42 passing database integration checks. The full production browser regression reports 63 passed with six intentional duplicate viewport/link-audit skips (4.5 minutes). The final focused admin rerun passes all three projects (39.4 seconds), including keyboard access, 1440/834/390px workflows and 320px product/order checks. Final desktop/mobile layouts were visually inspected after corrections.
+
+All four migrations applied successfully to the dedicated local database, and Prisma's read-only migration/schema diff reports no difference. Secure initial owner creation and duplicate refusal were verified with a temporary randomized account. Test cleanup preserved the seeded catalog and left zero admin users, sessions, uploaded assets or orders. See ADMIN.md and STAGE05_VERIFICATION.md for setup, screenshots and evidence.
+
+The normal production build's API and uploaded-image upstreams are restored to port 4000. The earlier isolated PostgreSQL cleanup was delayed by an approval-review service usage limit. During the collection listing update, fixture cleanup was rechecked (14 products, 13 active; zero admins, sessions, uploaded assets or orders) and pg_ctl successfully stopped the owned loopback test server. No process-cleanup step remains pending.
+
+The configured remote database and real owner credentials were not changed. Apply the migration and explicitly create the owner during setup. Real OCI-bucket operations, production TLS, Docker and ARM64 runtime remain unverified external deployment checks. No live payment qualification is claimed. **Stop after Stage 05.**
+
+## Prior homepage work (historical verification)
+
 
 ## Delivered
 
