@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client"
+  output = "../apps/api/src/generated/prisma"
+  moduleFormat = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique @db.VarChar(120)
+  description String?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  products    Product[]
+}
+
+model Collection {
+  id          String              @id @default(cuid())
+  name        String
+  slug        String              @unique @db.VarChar(120)
+  description String?
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime            @updatedAt @db.Timestamptz(3)
+  products    ProductCollection[]
+}
+
+model Product {
+  id            String              @id @default(cuid())
+  name          String
+  slug          String              @unique @db.VarChar(120)
+  description   String
+  pricePaise    Int
+  compareAtPaise Int?
+  sku           String? @unique
+  featured      Boolean @default(false)
+  stockQuantity Int                 @default(0)
+  active        Boolean             @default(true)
+  categoryId    String
+  category      Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images        ProductImage[]
+  variants      ProductVariant[]
+  collections   ProductCollection[]
+  createdAt     DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime            @updatedAt @db.Timestamptz(3)
+
+  @@index([active, createdAt, id])
+  @@index([categoryId])
+  @@index([active, featured])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String
+  concept   Boolean @default(false)
+  variantImages ProductVariant[] @relation("VariantImage")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([productId, position])
+  @@unique([id, productId])
+}
+
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String
+  sku           String   @unique
+  pricePaise    Int?
+  imageId       String?
+  image         ProductImage? @relation("VariantImage", fields: [imageId, productId], references: [id, productId], onDelete: NoAction)
+  stockQuantity Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([productId, active])
+}
+
+model ProductCollection {
+  productId    String
+  collectionId String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
+
+  @@id([productId, collectionId])
+  @@index([collectionId])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+}
+
+// Order / OrderItem / Payment design is reserved in docs/DATABASE.md.
+// No checkout, payment or admin credentials are created in Stage 01.

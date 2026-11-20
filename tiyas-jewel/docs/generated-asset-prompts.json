@@ -1,0 +1,65 @@
+[
+  {
+    "name": "hero",
+    "file": "apps/web/public/images/editorial/hero.webp",
+    "prompt": "Use case: product-mockup. Create a photorealistic luxury jewellery campaign photograph for a website hero, landscape 3:2 composition. Two highly polished sculptural yellow-gold hoop earrings rest on warm ivory travertine cylindrical plinths and raw sandstone, one hoop upright behind and the second to its right. Warm sunlight from upper left, refined soft architectural shadows, tactile matte limestone versus bright gold highlights. The LEFT 42 percent is calm pale ivory negative space with only softly lit stone wall for website headline; earrings occupy the RIGHT half. Camera at plinth height, exquisite believable metal detail, restrained editorial luxury, natural beige palette #F8F5F0 #E8DED0. No words, logos, typography, UI, watermark or borders. This is concept campaign art, not a photograph of actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "hoops",
+    "file": "apps/web/public/images/editorial/hoops.webp",
+    "prompt": "Use case: product-mockup. A pair of small smooth sculptural chunky yellow-gold hoop earrings on warm ivory linen and a little pale sandstone. Product closeup, centred jewelry fills 55 percent, landscape 3:2, soft sunshine, tactile shadows, luxury editorial jewellery still life. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "pendant",
+    "file": "apps/web/public/images/editorial/pendant.webp",
+    "prompt": "Use case: product-mockup. A fine yellow-gold necklace with a small organic teardrop gold pendant suspended down warm cream linen. Fine chain falling from top corners into pendant below centre. Portrait 2:3, minimal closeup, gentle sunlight and delicate shadow, exquisite metal reflections. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "rings",
+    "file": "apps/web/public/images/editorial/rings.webp",
+    "prompt": "Use case: product-mockup. Three sculptural polished gold rings, one fine band, one domed ring and one oval open ring, stacked loosely on a warm limestone slab. Editorial product close-up, square composition, jewellery fills centre, hard warm sunlight, matte ivory stone texture, subtle shadows. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "bracelet",
+    "file": "apps/web/public/images/editorial/bracelet.webp",
+    "prompt": "Use case: product-mockup. A single sculptural yellow gold open cuff bracelet with rounded organic ends lying on a warm beige travertine plinth, a few soft linen folds. Square closeup, centered, premium jewellery still life campaign, warm natural sunlight and refined shadows. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "flowers",
+    "file": "apps/web/public/images/editorial/flowers.webp",
+    "prompt": "Use case: product-mockup. Two bold sculptural yellow-gold flower earrings on a raw pale limestone rock with a delicate dried stem in the background. Large elegant five-petal gold flowers, believable wearable jewelry, editorial closeup, portrait 4:5 frame, pale sand and cream palette, soft warm sunshine, tactile luxury. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "celebration",
+    "file": "apps/web/public/images/editorial/celebration.webp",
+    "prompt": "Use case: photorealistic-natural. Photorealistic luxury Indian jewellery fashion editorial, wide landscape 3:2 photograph. An elegant adult South Asian woman with dark hair swept back wearing ornate gold chandelier earrings, a gold necklace, and a champagne-beige embroidered silk blouse. She is on the RIGHT side in three-quarter profile looking down thoughtfully, hand resting near collarbone. Deep chocolate-brown dimly lit interior, cinematic soft side lighting, warm skin texture, exquisite details, LEFT third is dark negative space for editorial copy. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "story",
+    "file": "apps/web/public/images/editorial/story.webp",
+    "prompt": "Use case: photorealistic-natural. Photorealistic luxury jewellery fashion editorial, square composition. Close crop of an adult South Asian woman's hands at her collarbone wearing several fine sculptural gold rings and a delicate layered gold necklace. Face outside frame. Ivory silk blouse, warm linen textures, natural skin, warm soft sunshine, understated editorial fashion, sand and cream palette. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  },
+  {
+    "name": "portrait",
+    "file": "apps/web/public/images/editorial/portrait.webp",
+    "prompt": "Use case: photorealistic-natural. Photorealistic luxury jewellery fashion editorial, portrait 2:3 composition. Elegant adult South Asian woman with dark hair pulled back, looking thoughtfully toward a window, wearing a beige linen tailored jacket, small sculptural gold earrings and layered fine gold necklaces. Warm soft daylight, natural skin texture, cream plaster wall background, intimate fashion campaign portrait. Cohesive sculptural minimalism campaign. No text, no logos, no watermark, no borders, no UI. Development concept artwork only, not actual merchandise.",
+    "method": "Built-in image_gen",
+    "purpose": "Development concept imagery; not actual product photography"
+  }
+]
