@@ -4,15 +4,15 @@ Updated 21 November 2026. Extends the existing Next.js/Fastify admin using the s
 
 ## Screens and design
 
-- `/admin/login`: supplied silver-jewellery photograph region, curved burgundy brand panel, email/password icons, password visibility and existing secure sign-in.
-- `/admin/forgot-password`: email OTP request and password reset, with the supplied recovery photograph region.
+- `/admin/login`: standalone silver-jewellery photograph, approved gold logo, curved burgundy brand panel, email/password icons, password visibility and existing secure sign-in.
+- `/admin/forgot-password`: email OTP request and password reset, with the same contained jewellery composition and approved logo.
 - `/admin/accept-invitation`: invitation email OTP and initial password setup.
 - Existing dashboard, create/edit products, product list, orders and order details retain their database services and receive the new sidebar, toolbar, forms, tables, pills and actions.
 - `/admin/users` and `/admin/users/new`: owner-only invitations, role changes, activation/deactivation and resend/reset actions. There is no public registration or customer account system.
 - `/admin/content`: Homepage, Banners & Carousel, Static Pages, and Menus & Links tabs.
 - `/admin-preview?key=...`: authorized, private, no-index draft preview in the real storefront layout.
 
-The reference's login/recovery photograph regions are rendered from supplied assets with CSS cropping; the reference UI is never used as a page background. Other imagery and product rows use the actual existing campaign assets and catalog. Reference sample prices, orders, ratings and contact information are not fabricated. Matching Lucide outline icons and the existing lotus motif are reused.
+Login/recovery now use the standalone silver-jewellery campaign photograph with contained, responsive framing instead of cropping the design screenshots. Admin branding reuses the storefront's approved optimized gold logo. Other imagery and product rows use the existing campaign assets and catalog. Reference sample prices, orders, ratings and contact information are not fabricated. Matching Lucide outline icons are reused.
 
 The authentication cards are capped at 640px before the global density adjustment, with compact controls and responsive spacing. Short desktop screens constrain the card to the available viewport and scroll longer OTP forms inside it; phone forms follow the page flow. The sidebar uses a separate vertically scrolling navigation area while branding and sign-out remain accessible. Content (CMS) is a keyboard-accessible disclosure that expands/collapses on every admin route, with its collapsed links removed from navigation focus. Mobile retains the same vertical menu rather than the previous horizontal-link styling.
 

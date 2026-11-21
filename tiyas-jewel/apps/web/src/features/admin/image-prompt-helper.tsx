@@ -7,7 +7,7 @@ import {
   type ImagePlacement,
 } from "@/lib/admin-image-prompt";
 import { downloadAdminFile } from "@/lib/admin-download";
-import { AdminSpinner } from "./loading-ui";
+import { useAdminActivity } from "./activity";
 
 export function ImagePromptHelper({
   placement,
@@ -25,6 +25,7 @@ export function ImagePromptHelper({
   const title = useId(),
     prompt = buildImagePrompt(placement, name, mobile),
     profile = imagePromptProfile(placement, mobile);
+  useAdminActivity(copying, "Copying image prompt…");
   useEffect(() => {
     if (open) dialog.current?.showModal();
     else dialog.current?.close();
@@ -125,7 +126,7 @@ export function ImagePromptHelper({
               }
             }}
           >
-            {copying ? <AdminSpinner /> : <Copy size={16} />}{" "}
+            {!copying && <Copy size={16} />}{" "}
             {copying ? "Copying…" : "Copy prompt"}
           </button>
           <button

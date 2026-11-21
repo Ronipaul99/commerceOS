@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
-import { AdminSpinner } from "./loading-ui";
+import { useAdminActivity } from "./activity";
 export function AdminConfirm({
   open,
   onClose,
@@ -20,6 +20,7 @@ export function AdminConfirm({
   const titleId = useId();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  useAdminActivity(busy, "Processing action…");
   useEffect(() => {
     if (open) {
       ref.current?.showModal();
@@ -73,7 +74,6 @@ export function AdminConfirm({
             }
           }}
         >
-          {busy && <AdminSpinner />}
           {busy ? "Working…" : label}
         </button>
       </div>

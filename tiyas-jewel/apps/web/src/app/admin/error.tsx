@@ -1,8 +1,9 @@
 "use client";
 import { useTransition } from "react";
-import { AdminSpinner } from "@/features/admin/loading-ui";
+import { useAdminActivity } from "@/features/admin/activity";
 export default function AdminError({ reset }: { reset: () => void }) {
   const [pending, startTransition] = useTransition();
+  useAdminActivity(pending, "Retrying page…");
   return (
     <main id="main-content" className="admin-main">
       <h1>We could not load this page.</h1>
@@ -13,14 +14,7 @@ export default function AdminError({ reset }: { reset: () => void }) {
         aria-busy={pending}
         onClick={() => startTransition(reset)}
       >
-        {pending ? (
-          <>
-            <AdminSpinner />
-            Retrying…
-          </>
-        ) : (
-          "Try again"
-        )}
+        {pending ? <>Retrying…</> : "Try again"}
       </button>
     </main>
   );

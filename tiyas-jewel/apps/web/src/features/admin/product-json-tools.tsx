@@ -5,7 +5,7 @@ import { z } from "zod";
 import { productTransferSchema, type ProductTransfer } from "@tiyas/shared";
 import { downloadAdminFile } from "@/lib/admin-download";
 import { AdminConfirm } from "./confirm";
-import { AdminSpinner } from "./loading-ui";
+import { useAdminActivity } from "./activity";
 
 export function ProductJsonTools({
   template,
@@ -22,6 +22,7 @@ export function ProductJsonTools({
   const [error, setError] = useState("");
   const [reading, setReading] = useState(false);
   const [message, setMessage] = useState("");
+  useAdminActivity(reading, "Reading product JSON…");
   function download(value: unknown, name: string) {
     downloadAdminFile(
       name,
@@ -62,7 +63,7 @@ export function ProductJsonTools({
           <Download size={17} /> Export current details
         </button>
         <label className="admin-button admin-upload">
-          {reading ? <AdminSpinner /> : <Upload size={17} />}
+          {!reading && <Upload size={17} />}
           {reading ? "Reading JSON…" : "Import JSON"}
           <input
             type="file"

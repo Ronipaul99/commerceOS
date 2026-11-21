@@ -43,7 +43,7 @@ import { AdminConfirm } from "./confirm";
 import { adminOkSchema } from "@/lib/admin-client";
 import { ImagePromptHelper } from "./image-prompt-helper";
 import { imagePromptProfile } from "@/lib/admin-image-prompt";
-import { AdminSpinner } from "./loading-ui";
+import { useAdminActivity } from "./activity";
 const labels = {
   hero: "Hero Slider",
   categories: "Shop by Category",
@@ -138,6 +138,18 @@ export function ContentEditor({
     [deletePage, setDeletePage] = useState(false),
     [removeSection, setRemoveSection] = useState<string | null>(null);
   const sections = value.type === "homepage" ? value.content.sections : [];
+  useAdminActivity(
+    busy || uploading,
+    uploading
+      ? "Uploading and optimizing image…"
+      : operation === "preview"
+        ? "Preparing preview…"
+        : operation === "publish"
+          ? "Publishing content…"
+          : operation === "unpublish"
+            ? "Unpublishing content…"
+            : "Saving draft…",
+  );
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => event.preventDefault();
@@ -1180,20 +1192,13 @@ function SaveBar({
             disabled={busy}
             onClick={onPreview}
           >
-            {operation === "preview" ? <AdminSpinner /> : <Eye size={17} />}
+            {operation !== "preview" && <Eye size={17} />}
             {operation === "preview" ? "Preparing preview…" : "Preview"}
           </button>
         )}
         {isPublished && (
           <button className="admin-link" disabled={busy} onClick={onUnpublish}>
-            {operation === "unpublish" ? (
-              <>
-                <AdminSpinner />
-                Unpublishing…
-              </>
-            ) : (
-              "Unpublish"
-            )}
+            {operation === "unpublish" ? <>Unpublishing…</> : "Unpublish"}
           </button>
         )}
         <button
@@ -1201,17 +1206,10 @@ function SaveBar({
           disabled={busy}
           onClick={onSave}
         >
-          {operation === "save" ? (
-            <>
-              <AdminSpinner />
-              Saving draft…
-            </>
-          ) : (
-            "Save as Draft"
-          )}
+          {operation === "save" ? <>Saving draft…</> : "Save as Draft"}
         </button>
         <button className="admin-button" disabled={busy} onClick={onPublish}>
-          {operation === "publish" ? <AdminSpinner /> : <Rocket size={18} />}
+          {operation !== "publish" && <Rocket size={18} />}
           {operation === "publish" ? "Publishing…" : "Publish Changes"}
         </button>
       </div>

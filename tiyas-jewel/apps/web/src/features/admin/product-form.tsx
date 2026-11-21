@@ -26,7 +26,7 @@ import { adminOkSchema } from "@/lib/admin-client";
 import { useAdmin } from "./shell";
 import { ProductJsonTools } from "./product-json-tools";
 import { ImagePromptHelper } from "./image-prompt-helper";
-import { AdminSpinner } from "./loading-ui";
+import { useAdminActivity } from "./activity";
 type Options = z.infer<typeof adminOptionsSchema>["data"];
 type FormImage = {
   id?: string;
@@ -111,6 +111,10 @@ export function AdminProductForm({
     [uploading, setUploading] = useState(false),
     [error, setError] = useState("");
   const [saveIntent, setSaveIntent] = useState("save");
+  useAdminActivity(
+    busy || uploading,
+    uploading ? "Uploading and optimizing images…" : "Saving product…",
+  );
   const [imagePlan, setImagePlan] = useState<
     ProductTransfer["product"]["images"]
   >([]);
@@ -1074,7 +1078,7 @@ export function AdminProductForm({
         </fieldset>
         {uploading && (
           <p role="status" className="admin-notice">
-            <AdminSpinner /> Uploading and validating image…
+            Uploading and validating image…
           </p>
         )}
         {error && (
@@ -1096,20 +1100,14 @@ export function AdminProductForm({
             disabled={busy || uploading}
           >
             {busy && saveIntent === "draft" ? (
-              <>
-                <AdminSpinner />
-                Saving draft…
-              </>
+              <>Saving draft…</>
             ) : (
               "Save as Draft"
             )}
           </button>
           <button className="admin-button" disabled={busy || uploading}>
             {busy && saveIntent === "save" ? (
-              <>
-                <AdminSpinner />
-                Saving…
-              </>
+              <>Saving…</>
             ) : product ? (
               "Save changes"
             ) : (

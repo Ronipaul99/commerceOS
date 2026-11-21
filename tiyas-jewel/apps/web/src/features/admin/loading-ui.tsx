@@ -1,8 +1,5 @@
-import { LoaderCircle } from "lucide-react";
 export function AdminSpinner() {
-  return (
-    <LoaderCircle className="admin-spinner" size={18} aria-hidden="true" />
-  );
+  return <span className="admin-spinner" aria-hidden="true" />;
 }
 export type AdminSkeletonKind =
   "dashboard" | "list" | "product" | "order" | "cms" | "users" | "form";

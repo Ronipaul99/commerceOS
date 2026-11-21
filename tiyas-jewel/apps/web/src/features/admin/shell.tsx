@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { AdminLink as Link } from "@/features/admin/activity";
 import { usePathname } from "next/navigation";
 import { useAdminRouter as useRouter, AdminFilterForm } from "./activity";
-import { AdminSpinner } from "./loading-ui";
 import {
   House,
   Package,
@@ -234,7 +233,6 @@ export function AdminShell({
               }}
             >
               <LogOut size={16} />
-              {loggingOut && <AdminSpinner />}
               {loggingOut ? "Signing out…" : "Sign out"}
             </button>
             {logoutError && <span role="alert">{logoutError}</span>}

@@ -12,7 +12,7 @@ import {
 import { adminOkSchema } from "@/lib/admin-client";
 import { useAdmin } from "./shell";
 import { AdminHeading } from "./common";
-import { AdminSpinner } from "./loading-ui";
+import { useAdminActivity } from "./activity";
 type User = z.infer<typeof adminUserSchema>;
 export function AdminUsers({
   users,
@@ -29,6 +29,7 @@ export function AdminUsers({
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [error, setError] = useState("");
+  useAdminActivity(busy, "Updating admin access…");
   async function mutate(action: () => Promise<unknown>, message: string) {
     setBusy(true);
     setError("");
@@ -68,7 +69,7 @@ export function AdminUsers({
       )}
       {busy && (
         <p className="admin-notice" role="status">
-          <AdminSpinner /> Updating admin access…
+          Updating admin access…
         </p>
       )}
       {error && (
@@ -164,7 +165,6 @@ export function AdminUsers({
                   </Link>
                   <button className="admin-button" disabled={busy}>
                     <Mail size={17} />
-                    {busy && <AdminSpinner />}
                     {busy ? "Sending…" : "Send Email Invitation"}
                   </button>
                 </div>

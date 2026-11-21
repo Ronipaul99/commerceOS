@@ -1,6 +1,7 @@
 "use client";
 import { AdminLink as Link } from "@/features/admin/activity";
 import { useState } from "react";
+import Image from "next/image";
 import { useAdminRouter as useRouter } from "@/features/admin/activity";
 import {
   Mail,
@@ -20,7 +21,7 @@ import {
 } from "@tiyas/shared";
 import { adminRequest, adminOkSchema } from "@/lib/admin-client";
 import { AdminBrand } from "./brand";
-import { AdminSpinner } from "./loading-ui";
+import { useAdminActivity } from "./activity";
 export function AdminLogin({
   recovery = false,
   invitation = false,
@@ -36,6 +37,10 @@ export function AdminLogin({
     [complete, setComplete] = useState(false),
     [email, setEmail] = useState("");
   const purpose = invitation ? "INVITE" : "RESET";
+  useAdminActivity(
+    busy,
+    recovery ? "Processing email verification…" : "Signing in…",
+  );
   return (
     <main
       id="main-content"
@@ -52,7 +57,15 @@ export function AdminLogin({
           <br />
           and website content.
         </p>
-        <div className="admin-auth-photography" aria-hidden="true" />
+        <div className="admin-auth-photography" aria-hidden="true">
+          <Image
+            src="/images/campaign/silver.webp"
+            alt=""
+            fill
+            sizes="(max-width:767px) 130px, (max-width:1100px) 30vw, 400px"
+            preload
+          />
+        </div>
       </aside>
       <div className="admin-auth-main">
         <section className="admin-auth-card">
@@ -227,7 +240,7 @@ export function AdminLogin({
                       ? "Verify & save password"
                       : "Send Email OTP"
                     : "Sign in"}
-                {busy ? <AdminSpinner /> : <ArrowRight size={22} />}
+                {!busy && <ArrowRight size={22} />}
               </button>
               {sent && (
                 <button

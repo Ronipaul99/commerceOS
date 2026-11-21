@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useSyncExternalStore,
   useTransition,
   type ComponentProps,
@@ -41,11 +42,23 @@ export function AdminActivityProvider({
     [router],
   );
   const label = message || (pending ? "Loading page…" : "");
+  const overlay = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = overlay.current;
+    if (!element) return;
+    // A popover uses the browser top layer, so progress also appears above
+    // native confirmation dialogs without changing their focus or close state.
+    if (label) {
+      if (!element.matches(":popover-open")) element.showPopover();
+    } else if (element.matches(":popover-open")) element.hidePopover();
+  }, [label]);
   return (
     <NavigationContext value={navigation}>
       <PendingContext value={pending}>
         {children}
         <div
+          ref={overlay}
+          popover="manual"
           className="admin-activity"
           data-active={!!label}
           role="status"
@@ -53,16 +66,20 @@ export function AdminActivityProvider({
           aria-atomic="true"
         >
           {label && (
-            <>
-              <span className="admin-activity-bar" aria-hidden="true" />
+            <div className="admin-activity-content">
               <AdminSpinner />
-              <span>{label}</span>
-            </>
+              <span className="sr-only">{label}</span>
+            </div>
           )}
         </div>
       </PendingContext>
     </NavigationContext>
   );
+}
+export function useAdminActivity(active: boolean, label: string) {
+  useEffect(() => {
+    if (active) return adminActivity.start(label);
+  }, [active, label]);
 }
 export function useAdminRouter() {
   const router = useContext(NavigationContext);
@@ -113,14 +130,7 @@ export function AdminFilterButton({ children }: { children: React.ReactNode }) {
       disabled={pending}
       aria-busy={pending}
     >
-      {pending ? (
-        <>
-          <AdminSpinner />
-          Applying…
-        </>
-      ) : (
-        children
-      )}
+      {pending ? <>Applying…</> : children}
     </button>
   );
 }
