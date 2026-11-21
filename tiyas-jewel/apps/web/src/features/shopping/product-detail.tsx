@@ -228,6 +228,36 @@ export function ProductDetail({
             ) : null}
           </div>
           <p className="product-description">{product.description}</p>
+          {product.details && (
+            <dl className="detail-specifications">
+              {product.details.material && (
+                <div>
+                  <dt>Material</dt>
+                  <dd>{product.details.material}</dd>
+                </div>
+              )}
+              {product.details.weightGrams && (
+                <div>
+                  <dt>Weight</dt>
+                  <dd>Approx. {product.details.weightGrams} g</dd>
+                </div>
+              )}
+              {product.details.size && (
+                <div>
+                  <dt>Size</dt>
+                  <dd>{product.details.size}</dd>
+                </div>
+              )}
+              {product.details.colors?.length ? (
+                <div>
+                  <dt>Colours</dt>
+                  <dd>
+                    {product.details.colors.map((c) => c.name).join(", ")}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          )}
           {hasVariants ? (
             <div className="variant-picker">
               <label htmlFor="product-variant">Size or option</label>

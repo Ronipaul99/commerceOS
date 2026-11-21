@@ -1,5 +1,9 @@
 import type { Prisma, PrismaClient } from "../../generated/prisma/client.js";
-import type { CatalogQuery, Product } from "@tiyas/shared";
+import {
+  productDetailsSchema,
+  type CatalogQuery,
+  type Product,
+} from "@tiyas/shared";
 const productInclude = {
   category: true,
   images: { orderBy: { position: "asc" } },
@@ -37,6 +41,10 @@ function toProduct(product: ProductRecord): Product {
     name: product.name,
     slug: product.slug,
     description: product.description,
+    details:
+      product.details === null
+        ? null
+        : productDetailsSchema.parse(product.details),
     sku: product.sku,
     pricePaise: product.pricePaise,
     compareAtPaise: product.compareAtPaise,

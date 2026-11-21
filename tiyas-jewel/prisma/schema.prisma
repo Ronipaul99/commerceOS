@@ -37,6 +37,7 @@ model Product {
   name          String
   slug          String              @unique @db.VarChar(120)
   description   String
+  details       Json?
   pricePaise    Int
   compareAtPaise Int?
   sku           String? @unique

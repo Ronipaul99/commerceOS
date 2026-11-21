@@ -21,6 +21,26 @@ export const categorySchema = z.object({
   description: z.string().nullable(),
 });
 export const collectionSchema = categorySchema.extend({});
+/** Store-owner supplied product facts; ratings and sales claims are not editable facts. */
+export const productDetailsSchema = z
+  .object({
+    subtitle: z.string().trim().max(160).optional(),
+    material: z.string().trim().max(100).optional(),
+    weightGrams: z.number().finite().positive().max(10000).optional(),
+    size: z.string().trim().max(100).optional(),
+    colors: z
+      .array(
+        z
+          .object({
+            name: z.string().trim().min(1).max(40),
+            hex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+          })
+          .strict(),
+      )
+      .max(12)
+      .optional(),
+  })
+  .strict();
 export const productImageSchema = z.object({
   id: z.string(),
   url: z.string().startsWith("/images/"),
@@ -42,6 +62,7 @@ export const productSchema = z.object({
   name: z.string(),
   slug: slugSchema,
   description: z.string(),
+  details: productDetailsSchema.nullable().optional(),
   pricePaise: moneyPaiseSchema,
   compareAtPaise: moneyPaiseSchema.nullable().optional(),
   sku: z.string().nullable().optional(),

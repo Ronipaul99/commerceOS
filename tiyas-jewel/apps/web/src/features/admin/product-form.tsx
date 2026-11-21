@@ -59,7 +59,12 @@ export function AdminProductForm({
     stockQuantity: product?.stockQuantity ?? 0,
     active: product?.active ?? true,
     featured: product?.featured ?? false,
+    subtitle: product?.details?.subtitle ?? "",
+    material: product?.details?.material ?? "",
+    weightGrams: product?.details?.weightGrams?.toString() ?? "",
+    size: product?.details?.size ?? "",
   });
+  const [colors, setColors] = useState(product?.details?.colors ?? []);
   const [images, setImages] = useState<FormImage[]>(
     product?.images.map((i) => ({
       id: i.id,
@@ -169,6 +174,19 @@ export function AdminProductForm({
             stockQuantity: form.stockQuantity,
             active: form.active,
             featured: form.featured,
+            details: {
+              ...(form.subtitle.trim()
+                ? { subtitle: form.subtitle.trim() }
+                : {}),
+              ...(form.material.trim()
+                ? { material: form.material.trim() }
+                : {}),
+              ...(form.weightGrams
+                ? { weightGrams: Number(form.weightGrams) }
+                : {}),
+              ...(form.size.trim() ? { size: form.size.trim() } : {}),
+              colors,
+            },
             images: images.map((i) => ({
               ...(i.id ? { id: i.id } : { assetId: i.assetId }),
               alt: i.alt,
@@ -295,6 +313,106 @@ export function AdminProductForm({
               </label>
             ))}
           </fieldset>
+        </section>
+        <section className="admin-panel">
+          <h2>Card &amp; jewellery details</h2>
+          <p className="admin-muted">
+            Use confirmed specifications. Empty fields are hidden. Colours
+            describe the product; purchasable options still use variants.
+          </p>
+          <div className="admin-form-grid">
+            <label>
+              Short subtitle
+              <input
+                maxLength={160}
+                value={form.subtitle}
+                onChange={(e) => change("subtitle", e.target.value)}
+              />
+            </label>
+            <label>
+              Material
+              <input
+                maxLength={100}
+                value={form.material}
+                onChange={(e) => change("material", e.target.value)}
+              />
+            </label>
+            <label>
+              Weight (grams)
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                max="10000"
+                value={form.weightGrams}
+                onChange={(e) => change("weightGrams", e.target.value)}
+              />
+            </label>
+            <label>
+              Size / dimensions
+              <input
+                maxLength={100}
+                value={form.size}
+                onChange={(e) => change("size", e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="admin-section-title">
+            <h3>Available colours</h3>
+            <button
+              type="button"
+              className="admin-button admin-button-light"
+              disabled={colors.length >= 12}
+              onClick={() =>
+                setColors((v) => [...v, { name: "", hex: "#b08d57" }])
+              }
+            >
+              Add colour
+            </button>
+          </div>
+          {colors.map((color, index) => (
+            <div className="admin-form-grid" key={index}>
+              <label>
+                Colour name {index + 1}
+                <input
+                  required
+                  maxLength={40}
+                  value={color.name}
+                  onChange={(e) =>
+                    setColors((v) =>
+                      v.map((c, i) =>
+                        i === index ? { ...c, name: e.target.value } : c,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label>
+                Colour swatch {index + 1}
+                <input
+                  type="color"
+                  value={color.hex}
+                  onChange={(e) =>
+                    setColors((v) =>
+                      v.map((c, i) =>
+                        i === index ? { ...c, hex: e.target.value } : c,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <button
+                type="button"
+                className="admin-button admin-button-light"
+                aria-label={`Remove colour ${index + 1}`}
+                onClick={() =>
+                  setColors((v) => v.filter((_, i) => i !== index))
+                }
+              >
+                Remove colour
+              </button>
+            </div>
+          ))}
         </section>
         <section className="admin-panel">
           <h2>Price & availability</h2>

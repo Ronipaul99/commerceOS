@@ -23,8 +23,8 @@
   --focus: #775521;
   --error: #963a2d;
   --overlay: rgb(36 28 23 / 0.42);
-  --font-body: "DM Sans", sans-serif;
-  --font-editorial: "Cormorant Garamond", Georgia, serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-editorial: var(--font-body);
   --text-xs: 0.6875rem;
   --text-sm: 0.8125rem;
   --text-base: 0.9375rem;
@@ -65,11 +65,15 @@ body {
   background: var(--background);
   color: var(--text);
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-size: var(--text-base);
   line-height: 1.5;
 }
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 button,

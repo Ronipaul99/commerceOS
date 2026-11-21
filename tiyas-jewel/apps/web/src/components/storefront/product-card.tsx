@@ -1,11 +1,32 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
-import { useState } from "react";
-import { Heart, Plus, ShoppingBag, Check, ArrowUpRight } from "lucide-react";
+import { useId, useState } from "react";
+import {
+  Heart,
+  ShoppingBag,
+  Check,
+  Eye,
+  Crown,
+  Star,
+  Layers,
+  Leaf,
+  Ruler,
+  Palette,
+} from "lucide-react";
 import type { DisplayProduct } from "@/lib/catalog-presentation";
+import {
+  cardImages,
+  cardSelection,
+  formatCardPrice,
+  defaultColorVariant,
+  verifiedCardDetails,
+  type ProductCardDetails,
+} from "@/lib/product-card";
 import { formatINR } from "@/lib/money";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
+import { Modal } from "@/components/ui/modal";
 import { useStorefront } from "./storefront-provider";
+
 export function WishlistButton({ product }: { product: DisplayProduct }) {
   const { saved, toggleSaved } = useStorefront();
   const active = saved.includes(product.id);
@@ -19,8 +40,9 @@ export function WishlistButton({ product }: { product: DisplayProduct }) {
     >
       <Heart
         size={19}
-        strokeWidth={1.3}
+        strokeWidth={1.5}
         fill={active ? "currentColor" : "none"}
+        aria-hidden="true"
       />
     </button>
   );
@@ -35,140 +57,480 @@ export function CartButton() {
       aria-label={`Open bag, ${count} items`}
       onClick={() => setPanel("bag")}
     >
-      <ShoppingBag size={20} strokeWidth={1.3} />
+      <ShoppingBag size={20} strokeWidth={1.3} aria-hidden="true" />
       {count ? <span className="count">{count}</span> : null}
     </button>
   );
 }
+
+function NecklaceSizeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 4c1 12 17 12 18 0M12 13v3" />
+      <circle cx="12" cy="19" r="3" />
+    </svg>
+  );
+}
+
+function ProductBagIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 8h14l2 14H3L5 8ZM8 10V6a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
+
+/** One card system for homepage rails, listings, favourites and related products. */
 export function ProductCard({
   product,
   wishlistMode = false,
   variant = "default",
+  details,
 }: {
   product: DisplayProduct;
   wishlistMode?: boolean;
+  /** Placement only. All placements share the same card design and interactions. */
   variant?: "default" | "campaign" | "listing";
+  details?: ProductCardDetails;
 }) {
   const { addToBag, removeSaved } = useStorefront();
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState(false);
+  const [error, setError] = useState("");
+  const [quickView, setQuickView] = useState(false);
+  const [variantId, setVariantId] = useState<string | null>(() =>
+    defaultColorVariant(product, details ?? product.cardDetails),
+  );
+  const [imageIndex, setImageIndex] = useState(0);
+  const selectId = useId();
+  const facts = verifiedCardDetails(details ?? product.cardDetails);
+  const selection = cardSelection(product, variantId);
+  const images = cardImages(product);
+  const activeImage =
+    images[Math.min(imageIndex, images.length - 1)] ?? images[0];
+  const variants = product.raw?.variants ?? [];
+  const showVariantChips =
+    variants.length > 0 &&
+    !variants.every((variant) =>
+      facts.colors.some((color) => color.variantId === variant.id),
+    );
   const href =
     product.source === "demo" ? "/shop" : `/products/${product.slug}`;
-  return (
-    <article
-      className={`product-card ${variant === "campaign" ? "product-card-campaign" : variant === "listing" ? "product-card-listing" : ""} ${added ? "just-added" : ""}`}
-    >
-      <div className="product-image">
-        <Link href={href} aria-label={`View ${product.name}`}>
+  const collection =
+    product.raw?.collections[0]?.name ?? product.raw?.category.name;
+  const unavailable =
+    !product.available || (Boolean(selection.variant) && !selection.available);
+  const badge = facts.bestseller
+    ? "Bestseller"
+    : product.raw?.featured
+      ? "Featured"
+      : null;
+
+  function chooseVariant(id: string) {
+    setVariantId(id || null);
+    setAdded(false);
+    setError("");
+    const imageId = variants.find((item) => item.id === id)?.imageId;
+    const index = images.findIndex((image) => image.id === imageId);
+    if (index >= 0) setImageIndex(index);
+  }
+  async function add() {
+    if (busy || unavailable || product.source === "demo") return;
+    if (selection.from) {
+      setQuickView(true);
+      return;
+    }
+    setBusy(true);
+    setError("");
+    setQuickView(false);
+    try {
+      const success = await addToBag(product, variantId);
+      setAdded(success);
+      if (success && wishlistMode) removeSaved(product.id);
+      if (!success)
+        setError(
+          "Could not add this selection. Please check availability and try again.",
+        );
+    } catch {
+      setError("Could not add this selection. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  function media(inDialog = false) {
+    return (
+      <div className="tj-pc-media">
+        <Link
+          href={href}
+          className="tj-pc-image-link"
+          aria-label={`View ${product.name}`}
+        >
           <ResponsiveImage
-            src={product.image}
-            alt={product.alt}
+            src={activeImage.url}
+            alt={product.conceptImage ? product.alt : activeImage.alt}
+            className="tj-pc-photo"
             sizes={
-              variant === "listing"
-                ? "(max-width: 767px) 46vw, (max-width: 1023px) 30vw, 25vw"
-                : variant === "campaign"
-                  ? "(max-width: 767px) 44vw, (max-width: 1199px) 24vw, 16vw"
-                  : "(max-width: 599px) 46vw, (max-width: 1023px) 45vw, 23vw"
+              inDialog
+                ? "(max-width: 767px) 90vw, 400px"
+                : "(max-width: 767px) 48vw, (max-width: 1199px) 30vw, 25vw"
             }
           />
-          {product.alternateImage ? (
+          {!inDialog && imageIndex === 0 && images[1] && (
             <ResponsiveImage
-              className="alternate-image"
-              src={product.alternateImage}
+              className="tj-pc-alternate"
+              src={images[1].url}
               alt={`${product.name}, alternate view`}
-              sizes="(max-width: 599px) 46vw, 23vw"
+              sizes="(max-width: 767px) 48vw, 25vw"
             />
-          ) : null}
+          )}
         </Link>
-        <WishlistButton product={product} />
-        {variant !== "default" && !product.available && (
-          <span className="tj-stock-label">Sold out</span>
+        {badge && (
+          <span className="tj-pc-badge">
+            <Crown size={14} aria-hidden="true" />
+            {badge}
+          </span>
         )}
-        {product.conceptImage ? (
-          <span className="image-label">
+        <WishlistButton product={product} />
+        {unavailable && <span className="tj-pc-stock">Sold out</span>}
+        {product.conceptImage && (
+          <span className="tj-pc-provenance">
             {product.source === "demo"
               ? "Sample / concept image"
               : "Concept image"}
           </span>
-        ) : null}
-      </div>
-      <div className="product-details">
-        {variant === "listing" && product.raw && (
-          <span className="cl-product-category">
-            {product.raw.category.name}
-          </span>
         )}
-        <h3>
-          <Link href={href}>{product.name}</Link>
-        </h3>
-        {variant === "listing" && product.raw && (
-          <p className="cl-product-description">{product.raw.description}</p>
+        {images.length > 1 && (
+          <div
+            className="tj-pc-dots"
+            role="group"
+            aria-label={`Photographs of ${product.name}`}
+          >
+            {images.map((image, index) => (
+              <button
+                key={image.id}
+                type="button"
+                aria-label={`Show image ${index + 1} of ${product.name}`}
+                aria-pressed={imageIndex === index}
+                onClick={() => setImageIndex(index)}
+              >
+                <span />
+              </button>
+            ))}
+          </div>
         )}
-        <p>
-          {product.hasVariants ? <span>From </span> : null}
-          {formatINR(product.pricePaise)}
-          {product.compareAtPaise &&
-          product.compareAtPaise > product.pricePaise ? (
-            <del>{formatINR(product.compareAtPaise)}</del>
-          ) : null}
-        </p>
       </div>
-      {product.hasVariants && product.available ? (
-        <Link
-          className="add-to-bag"
-          href={wishlistMode ? `${href}?moveFromWishlist=true` : href}
-        >
-          <span>Choose options</span>
-          <span className="add-icon">
-            <Plus size={17} aria-hidden="true" />
-          </span>
-        </Link>
-      ) : (
-        <button
-          className="add-to-bag"
-          disabled={busy || !product.available || product.source === "demo"}
-          onClick={async () => {
-            setBusy(true);
-            const added = await addToBag(product);
-            if (added) setAdded(true);
-            if (added && wishlistMode) removeSaved(product.id);
-            setBusy(false);
-          }}
-          aria-label={`${wishlistMode ? "Move" : "Add"} ${product.name} to bag`}
-        >
-          <span>
-            {busy
-              ? "Checking..."
-              : product.source === "demo"
-                ? "Preview only"
-                : product.available
-                  ? wishlistMode
-                    ? "Move to bag"
-                    : "Add to bag"
-                  : "Out of stock"}
-          </span>
-          <span className="add-icon">
-            {variant !== "default" ? (
-              added ? (
-                <Check size={17} aria-hidden="true" />
+    );
+  }
+  function attributes() {
+    const rich = Boolean(facts.colors.length || facts.size);
+    if (
+      !facts.material &&
+      !facts.weightGrams &&
+      !facts.size &&
+      !facts.colors.length
+    )
+      return null;
+    const material = facts.material ? (
+      <div className="tj-pc-fact">
+        <Layers aria-hidden="true" />
+        <div>
+          <dt>Material</dt>
+          <dd>{facts.material}</dd>
+        </div>
+      </div>
+    ) : null;
+    const weight = facts.weightGrams ? (
+      <div className="tj-pc-fact">
+        <Leaf aria-hidden="true" />
+        <div>
+          <dt>Weight</dt>
+          <dd>&#8776; {facts.weightGrams} g</dd>
+        </div>
+      </div>
+    ) : null;
+    const colors = facts.colors.length ? (
+      <div className="tj-pc-fact">
+        <Palette aria-hidden="true" />
+        <div>
+          <dt>Colours available</dt>
+          <dd className="tj-pc-colors">
+            {facts.colors.map((color) => {
+              const option = variants.find(
+                (item) => item.id === color.variantId,
+              );
+              return option ? (
+                <button
+                  type="button"
+                  key={color.name}
+                  title={color.name}
+                  aria-label={
+                    color.name +
+                    " colour" +
+                    (option.available ? "" : ", out of stock")
+                  }
+                  aria-pressed={variantId === option.id}
+                  disabled={!product.available || !option.available}
+                  onClick={() => chooseVariant(option.id)}
+                  style={{ backgroundColor: color.hex }}
+                >
+                  {variantId === option.id && (
+                    <Check size={14} aria-hidden="true" />
+                  )}
+                </button>
               ) : (
-                <ShoppingBag size={17} strokeWidth={1.4} aria-hidden="true" />
-              )
-            ) : (
-              <Plus size={17} strokeWidth={1.3} aria-hidden="true" />
-            )}
+                <span
+                  key={color.name}
+                  role="img"
+                  title={color.name}
+                  aria-label={color.name + " colour"}
+                  style={{ backgroundColor: color.hex }}
+                />
+              );
+            })}
+          </dd>
+        </div>
+      </div>
+    ) : null;
+    const size = facts.size ? (
+      <div className="tj-pc-fact">
+        {product.raw?.category.slug === "necklaces" ? (
+          <NecklaceSizeIcon />
+        ) : (
+          <Ruler aria-hidden="true" />
+        )}
+        <div>
+          <dt>
+            {product.raw?.category.slug === "necklaces"
+              ? "Necklace size"
+              : "Size"}
+          </dt>
+          <dd>{facts.size}</dd>
+        </div>
+      </div>
+    ) : null;
+    return (
+      <dl
+        className={
+          "tj-pc-attributes " +
+          (rich ? "tj-pc-attributes-full" : "tj-pc-attributes-essential")
+        }
+      >
+        {(material || (rich ? colors : weight)) && (
+          <div className="tj-pc-fact-row">
+            {material}
+            {rich ? colors : weight}
+          </div>
+        )}
+        {rich && (weight || size) && (
+          <div className="tj-pc-fact-row tj-pc-fact-band">
+            {weight}
+            {size}
+          </div>
+        )}
+      </dl>
+    );
+  }
+  function price(inDialog = false) {
+    const format = inDialog ? formatINR : formatCardPrice;
+    return (
+      <div className="tj-pc-price">
+        <strong>
+          {selection.from && <small>From </small>}
+          {format(selection.pricePaise)}
+        </strong>
+        {selection.compareAtPaise && (
+          <del>{format(selection.compareAtPaise)}</del>
+        )}
+        {selection.discountPercent > 0 && (
+          <span className="tj-pc-discount">
+            {selection.discountPercent}% OFF
           </span>
-        </button>
-      )}
-      {variant === "listing" && (
-        <Link
-          className="cl-product-view"
-          href={href}
-          aria-label={`View details for ${product.name}`}
+        )}
+      </div>
+    );
+  }
+  function addButton(inDialog = false) {
+    return (
+      <button
+        type="button"
+        className="tj-pc-add"
+        disabled={
+          busy ||
+          unavailable ||
+          product.source === "demo" ||
+          (inDialog && selection.from)
+        }
+        aria-label={
+          selection.from
+            ? `Choose options for ${product.name}`
+            : `${wishlistMode ? "Move" : "Add"} ${product.name} to bag`
+        }
+        onClick={add}
+      >
+        {added ? <Check size={17} aria-hidden="true" /> : <ProductBagIcon />}
+        <span>
+          {busy
+            ? "Checking..."
+            : product.source === "demo"
+              ? "Preview only"
+              : unavailable
+                ? "Out of stock"
+                : selection.from
+                  ? "Choose options"
+                  : added
+                    ? "Added to bag"
+                    : wishlistMode
+                      ? "Move to bag"
+                      : "Add to Bag"}
+        </span>
+      </button>
+    );
+  }
+  return (
+    <article
+      className={`product-card tj-product-card ${variant === "default" ? "" : `product-card-${variant}`} ${added ? "just-added" : ""}`}
+      data-context={variant}
+      data-details={facts.colors.length || facts.size ? "full" : "essential"}
+    >
+      <div className="tj-pc-frame">
+        {media()}
+        <div className="tj-pc-body">
+          {collection && <p className="tj-pc-collection">{collection}</p>}
+          <div className="tj-pc-summary">
+            <h3>
+              <Link href={href}>{product.name}</Link>
+            </h3>
+            {(facts.subtitle || product.raw?.description) && (
+              <p className="tj-pc-description">
+                {facts.subtitle ?? product.raw?.description}
+              </p>
+            )}
+            {facts.rating && (
+              <p className="tj-pc-rating">
+                <Star size={15} fill="currentColor" aria-hidden="true" />
+                <strong>
+                  {facts.rating.value.toFixed(1)}
+                  <span className="sr-only"> out of 5</span>
+                </strong>
+                <span>{facts.rating.count} reviews</span>
+              </p>
+            )}
+            {price()}
+          </div>
+          {attributes()}
+          {showVariantChips && (
+            <div
+              className="tj-pc-options"
+              role="group"
+              aria-label={`Options for ${product.name}`}
+            >
+              <span>
+                <Ruler size={18} aria-hidden="true" />
+                Size / option
+              </span>
+              <div>
+                {variants.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    disabled={!product.available || !option.available}
+                    aria-pressed={option.id === variantId}
+                    onClick={() => chooseVariant(option.id)}
+                  >
+                    {option.name}
+                    {!option.available && (
+                      <span className="sr-only">, out of stock</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="tj-pc-actions">
+          {addButton()}
+          <button
+            type="button"
+            className="tj-pc-quick"
+            aria-label={`Quick View ${product.name}`}
+            aria-haspopup="dialog"
+            onClick={() => setQuickView(true)}
+          >
+            <Eye size={18} aria-hidden="true" />
+            <span>Quick View</span>
+          </button>
+        </div>
+        {error && (
+          <p className="tj-pc-error" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+      {quickView && (
+        <Modal
+          title={`Quick view: ${product.name}`}
+          onClose={() => setQuickView(false)}
         >
-          View details
-          <ArrowUpRight size={14} aria-hidden="true" />
-        </Link>
+          <div className="tj-pc-preview">
+            {media(true)}
+            <div className="tj-pc-preview-body">
+              {collection && <p className="tj-pc-collection">{collection}</p>}
+              <h3>{product.name}</h3>
+              {price(true)}
+              <p>{facts.subtitle ?? product.raw?.description}</p>
+              {attributes()}
+              {variants.length > 0 && (
+                <div className="tj-pc-variant-field">
+                  <label htmlFor={selectId}>Size or option</label>
+                  <select
+                    id={selectId}
+                    value={variantId ?? ""}
+                    onChange={(event) => chooseVariant(event.target.value)}
+                  >
+                    <option value="">Choose your option</option>
+                    {variants.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                        {!option.available ? " / Out of stock" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {selection.variant && (
+                <p className="tj-pc-sku">SKU: {selection.variant.sku}</p>
+              )}
+              <p className="tj-pc-availability" role="status">
+                {unavailable
+                  ? "Currently out of stock"
+                  : selection.from
+                    ? "Choose a size or option to check availability"
+                    : "Available"}
+              </p>
+              {addButton(true)}
+              <Link
+                className="tj-pc-details-link"
+                href={wishlistMode ? `${href}?moveFromWishlist=true` : href}
+              >
+                View full product details
+              </Link>
+            </div>
+          </div>
+        </Modal>
       )}
     </article>
   );

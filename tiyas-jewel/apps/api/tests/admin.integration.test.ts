@@ -105,6 +105,13 @@ async function create(variants = false) {
     name: "Admin integration piece",
     slug: `admin-test-${randomUUID()}`,
     description: "Temporary isolated admin test product",
+    details: {
+      subtitle: "Complete test jewellery",
+      material: "Brass with Kundan",
+      weightGrams: 78,
+      size: "Adjustable (14-16 in)",
+      colors: [{ name: "Green", hex: "#00582d" }],
+    },
     categoryId: category.id,
     collectionIds: [],
     pricePaise: 149000,
@@ -130,6 +137,10 @@ async function create(variants = false) {
   const response = await request("POST", "/products", input);
   expect(response.statusCode, response.body).toBe(201);
   const p = adminProductResponseSchema.parse(response.json()).data;
+  expect(p.details).toMatchObject({
+    material: "Brass with Kundan",
+    weightGrams: 78,
+  });
   ids.push(p.id);
   return p;
 }
@@ -139,6 +150,7 @@ function input(p: AdminProduct) {
     name: p.name,
     slug: p.slug,
     description: p.description,
+    details: p.details,
     categoryId: p.categoryId,
     collectionIds: p.collectionIds,
     pricePaise: p.pricePaise,
@@ -363,6 +375,10 @@ describe("Stage 05 product and image management", () => {
     const publicProduct = await app.inject(`/api/v1/products/${p.slug}`);
     expect(publicProduct.json().data.name).toBe(body.name);
     expect(publicProduct.json().data.pricePaise).toBe(179000);
+    expect(publicProduct.json().data.details).toMatchObject({
+      material: "Brass with Kundan",
+      size: "Adjustable (14-16 in)",
+    });
     expect((await request("PUT", `/products/${p.id}`, body)).statusCode).toBe(
       409,
     );

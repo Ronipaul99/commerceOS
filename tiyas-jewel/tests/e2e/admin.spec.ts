@@ -144,6 +144,17 @@ test("owner securely manages products, photos and accepted orders", async ({
     .getByRole("combobox", { name: "Category", exact: true })
     .selectOption({ label: "Earrings" });
   await page.getByLabel("SKU", { exact: true }).fill(f.slug);
+  await page
+    .getByLabel("Short subtitle", { exact: true })
+    .fill("Necklace with Matching Earrings");
+  await page.getByLabel("Material", { exact: true }).fill("Brass with Kundan");
+  await page.getByLabel("Weight (grams)", { exact: true }).fill("78");
+  await page
+    .getByLabel("Size / dimensions", { exact: true })
+    .fill("Adjustable (14-16 in)");
+  await page.getByRole("button", { name: "Add colour", exact: true }).click();
+  await page.getByLabel("Colour name 1", { exact: true }).fill("Green");
+  await page.getByLabel("Colour swatch 1", { exact: true }).fill("#00582d");
   await page.getByLabel("Price (INR)", { exact: true }).fill("1490.00");
   await page
     .getByLabel("Compare-at price (INR)", { exact: true })
@@ -212,6 +223,12 @@ test("owner securely manages products, photos and accepted orders", async ({
     await (await request.get(`/api/v1/products/${f.slug}`)).json()
   ).data;
   expect(publicProduct.images).toHaveLength(2);
+  expect(publicProduct.details).toMatchObject({
+    material: "Brass with Kundan",
+    weightGrams: 78,
+    size: "Adjustable (14-16 in)",
+    colors: [{ name: "Green", hex: "#00582d" }],
+  });
   expect(publicProduct.variants[0].imageId).toBe(publicProduct.images[0].id);
   const session = await (
     await page.request.get("/api/v1/admin/session")

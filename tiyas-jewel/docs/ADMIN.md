@@ -13,6 +13,8 @@ The script writes only the selected database; it is not run automatically at sta
 
 ## Authentication and authorization
 
+If the owner account exists but login fails with a server error, verify `npm run db:migrate` completed against the API's configured database. Credential creation alone does not install the AdminSession table. After repairing configuration/schema, earlier failed attempts may still be subject to the existing login cooldown; do not disable the limiter. A local development API reload clears its in-memory counters. Production incidents require normal operational handling.
+
 Passwords use Node's asynchronous scrypt with independent random salts, N=131072/r=8/p=1 and constant-time comparison. Session tokens are random 256-bit values; PostgreSQL stores only their SHA-256 hashes. Sessions expire after `ADMIN_SESSION_HOURS` (default eight; maximum 24), cannot slide indefinitely, are checked against active admins on each API request and are deleted on logout. A new login revokes the owner's previous sessions. Expired sessions are pruned at successful login.
 
 Production uses the host-only `__Host-tiyas_admin` cookie with `Secure`, `HttpOnly`, `SameSite=Strict` and `Path=/`; local development/test uses `tiyas_admin` without Secure. No session token is exposed to JavaScript or local storage. A session-bound CSRF token must accompany every authenticated mutation. Exact configured origins and cross-site fetch metadata are checked. Login accepts only validated JSON and is limited to five requests per IP per 15 minutes. Admin traffic has a bounded per-process limiter; the deployment remains one Fastify instance, with no implicit proxy trust. Shared/distributed rate limiting and deployment-level IP policy are Stage 06 qualification work if topology changes.
@@ -66,3 +68,7 @@ The owner reviews the phone/address and arranges shipment manually outside the p
 ## Verification
 
 See IMPLEMENTATION_STATUS.md and STAGE05_VERIFICATION.md for actual checks, screenshots and outstanding external qualification. Tests require an explicitly selected dedicated PostgreSQL database; they never fall back to the root `.env` database. The browser admin projects run after shopping/checkout regression projects so temporary owner-created products cannot change catalog pagination expectations. Real OCI credentials and an actual bucket are not assumed or fabricated.
+
+## Editable jewellery specifications
+
+The product form now includes short subtitle, material, weight in grams, size/dimensions and named colour swatches. They persist through existing authorized product save routes and are displayed by every shared card, Quick View and the product details page. Blank fields stay hidden. Colours are descriptive swatches; use actual variants/stock for purchasable choices. Do not enter unverified ratings or claims; these are excluded from this data contract.

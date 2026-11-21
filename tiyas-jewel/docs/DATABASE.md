@@ -52,3 +52,9 @@ Adds AdminSession (hashed opaque token, owner FK, expiry indexes) and ImageAsset
 Admin mutations lock products then variants in checkout's lock order, compare product/variant form versions, and serialize cross-model SKU validation using a transaction advisory lock. Unused products may be deleted; referenced products/variants must be archived/deactivated. Completion uses a conditional accepted NEW update, preserving the first completedAt on repeats. Existing order/payment acceptance and precise money constraints remain unchanged.
 
 Migration/seed verification uses explicitly configured isolated PostgreSQL, never the root .env target. See STAGE05_VERIFICATION.md for recorded results.
+
+## Product facts migration: 20261121000500_product_details
+
+Adds nullable Product.details JSONB with a database object-type check. Shared Zod schemas validate subtitle/material/size bounds, positive finite weight and up to twelve named hex colour swatches. Existing records and consumers remain compatible; an omitted admin details field preserves data, null clears it. Prisma DbNull is used to clear SQL values. Admin product version/locking rules are unchanged.
+
+This migration was tested on the dedicated local database before being applied to the configured catalog for the user-requested complete card. One approved Premium Kundan product was then added with zero stock. See COMPLETE_PRODUCT_CARDS.md for exact supplied values and concept-image provenance. No seed/reset or credentials change is part of this update.

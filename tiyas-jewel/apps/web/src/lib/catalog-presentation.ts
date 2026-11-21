@@ -1,5 +1,6 @@
 import type { Product } from "@tiyas/shared";
 import { editorialAssets as art } from "./storefront-config";
+import type { ProductCardDetails } from "./product-card";
 export type DisplayProduct = {
   id: string;
   slug: string;
@@ -14,6 +15,7 @@ export type DisplayProduct = {
   alternateImage?: string;
   compareAtPaise?: number | null;
   hasVariants?: boolean;
+  cardDetails?: ProductCardDetails;
 };
 export const previewProducts: DisplayProduct[] = [
   {
@@ -84,6 +86,7 @@ export function presentProduct(product: Product): DisplayProduct {
     pricePaise: product.pricePaise,
     image: missingImage ? concept : image.url,
     raw: product,
+    cardDetails: product.details ?? undefined,
     hasVariants: product.variants.length > 0,
     compareAtPaise: product.compareAtPaise,
     alternateImage: product.images[1]?.url,

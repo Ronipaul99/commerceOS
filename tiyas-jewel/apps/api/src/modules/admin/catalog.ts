@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Prisma, type PrismaClient } from "../../generated/prisma/client.js";
-import type { AdminProductInput } from "@tiyas/shared";
+import { productDetailsSchema, type AdminProductInput } from "@tiyas/shared";
 import type { ImageStorage } from "../../integrations/image-storage.js";
 import { validateImage } from "../../integrations/image-storage.js";
 import { AdminError } from "./errors.js";
@@ -18,6 +18,7 @@ function view(p: RecordProduct) {
     name: p.name,
     slug: p.slug,
     description: p.description,
+    details: p.details === null ? null : productDetailsSchema.parse(p.details),
     categoryId: p.categoryId,
     category: {
       id: p.category.id,
@@ -193,6 +194,11 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
           name: input.name,
           slug: input.slug,
           description: input.description,
+          ...(input.details !== undefined
+            ? {
+                details: input.details === null ? Prisma.DbNull : input.details,
+              }
+            : {}),
           categoryId: input.categoryId,
           pricePaise: input.pricePaise,
           compareAtPaise: input.compareAtPaise,

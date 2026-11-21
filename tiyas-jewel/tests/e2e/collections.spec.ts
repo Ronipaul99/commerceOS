@@ -167,6 +167,11 @@ test("collection layout adapts from 320px to wide desktop without image or contr
       .evaluate(
         (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
       );
-    expect(cols).toBe(width < 768 ? 2 : width < 1280 ? 3 : 4);
+    const gridWidth = await page
+      .locator(".cl-product-grid")
+      .evaluate((el) => el.clientWidth);
+    expect(cols).toBe(
+      width < 768 ? 2 : Math.max(1, Math.floor((gridWidth + 12) / 272)),
+    );
   }
 });
