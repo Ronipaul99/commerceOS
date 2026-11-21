@@ -22,6 +22,13 @@ const envSchema = z
       }
     }),
     ADMIN_SESSION_HOURS: z.coerce.number().int().min(1).max(24).default(8),
+    SMTP_HOST: optionalSecret(z.string().min(1)),
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+    SMTP_SECURE: bool,
+    SMTP_USER: optionalSecret(z.string().min(1)),
+    SMTP_PASSWORD: optionalSecret(z.string().min(1)),
+    SMTP_FROM: optionalSecret(z.email()),
+    ADMIN_OTP_SECRET: optionalSecret(z.string().min(32)),
     STORAGE_ADAPTER: z.enum(["local", "oci"]).default("local"),
     STORAGE_LOCAL_DIR: z.string().min(1).default("var/uploads"),
     OCI_S3_ENDPOINT: optionalSecret(

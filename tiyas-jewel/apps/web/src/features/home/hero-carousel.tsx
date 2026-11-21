@@ -21,7 +21,9 @@ function subscribeVisibility(onChange: () => void) {
   return () => document.removeEventListener("visibilitychange", onChange);
 }
 
-export function HeroCarousel() {
+export type HeroSlide = {title:string;secondLine:string;eyebrow:string;description:string;cta:string;href:string;image:string;mobileImage:string;alt?:string};
+export function HeroCarousel({slides=heroSlides}:{slides?:readonly HeroSlide[]}) {
+  const heroSlides=slides;
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -64,7 +66,7 @@ export function HeroCarousel() {
       heroAutoplayIntervalMs,
     );
     return () => window.clearTimeout(timer);
-  }, [active, rotating]);
+  }, [active, rotating, heroSlides.length]);
   const slide = heroSlides[active]!;
   return (
     <section
@@ -147,9 +149,9 @@ export function HeroCarousel() {
             desktop={slide.image}
             mobile={slide.mobileImage}
             alt={
-              active === 0
+              slide.alt ?? (active === 0
                 ? "Concept campaign: traditional Kundan necklace and earrings on burgundy silk with flowers and warm festive lights"
-                : `Concept campaign for ${slide.eyebrow}`
+                : `Concept campaign for ${slide.eyebrow}`)
             }
             priority={active === 0}
           />

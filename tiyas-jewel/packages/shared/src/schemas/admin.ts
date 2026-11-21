@@ -26,6 +26,8 @@ export const adminSessionSchema = z.object({
     email: z.email(),
     csrfToken: z.string(),
     expiresAt: version,
+    name: z.string().default(""),
+    role: z.enum(["OWNER", "ADMIN", "CONTENT_MANAGER"]).default("OWNER"),
   }),
 });
 export const adminImageInputSchema = z
@@ -114,9 +116,12 @@ export const adminProductInputSchema = z
 export const adminProductQuerySchema = paginationQuerySchema.extend({
   q: z.string().trim().max(100).default(""),
   categoryId: id.optional(),
+  status: z.enum(["ALL", "ACTIVE", "ARCHIVED", "OUT_OF_STOCK"]).default("ALL"),
 });
 export const adminOrderQuerySchema = paginationQuerySchema.extend({
   status: z.enum(["NEW", "COMPLETED", "ALL"]).default("NEW"),
+  q: z.string().trim().max(100).default(""),
+  payment: z.enum(["ALL", "ONLINE", "COD"]).default("ALL"),
 });
 export const adminParamsSchema = z.object({ id }).strict();
 export const adminVersionSchema = z.object({ version }).strict();

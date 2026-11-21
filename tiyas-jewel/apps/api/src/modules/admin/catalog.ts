@@ -66,15 +66,43 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
     categoryId?: string;
     page: number;
     limit: number;
+    status?: "ALL" | "ACTIVE" | "ARCHIVED" | "OUT_OF_STOCK";
   }) {
     const where: Prisma.ProductWhereInput = {
+      ...(q.status === "ACTIVE"
+        ? { active: true }
+        : q.status === "ARCHIVED"
+          ? { active: false }
+          : q.status === "OUT_OF_STOCK"
+            ? {
+                active: true,
+                OR: [
+                  { variants: { none: {} }, stockQuantity: 0 },
+                  {
+                    variants: { some: {} },
+                    NOT: {
+                      variants: {
+                        some: { active: true, stockQuantity: { gt: 0 } },
+                      },
+                    },
+                  },
+                ],
+              }
+            : {}),
       ...(q.categoryId ? { categoryId: q.categoryId } : {}),
       ...(q.q
         ? {
-            OR: [
-              { name: { contains: q.q, mode: "insensitive" } },
-              { sku: { contains: q.q, mode: "insensitive" } },
-              { slug: { contains: q.q, mode: "insensitive" } },
+            AND: [
+              {
+                OR: [
+                  { name: { contains: q.q, mode: "insensitive" } },
+                  { sku: { contains: q.q, mode: "insensitive" } },
+                  { slug: { contains: q.q, mode: "insensitive" } },
+                  {
+                    category: { name: { contains: q.q, mode: "insensitive" } },
+                  },
+                ],
+              },
             ],
           }
         : {}),
@@ -401,6 +429,7 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
           throw new AdminError("NOT_FOUND", "Image not found.", 404);
         if (
           asset.image ||
+          (await tx.contentAssetUse.count({ where: { assetId: id } })) > 0 ||
           (await tx.orderItem.count({
             where: { image: `/images/uploads/${id}.webp` },
           }))

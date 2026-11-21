@@ -103,6 +103,13 @@ async function capture(page: Page, name: string) {
     scale: "css",
   });
 }
+async function openAdminMenu(page: Page) {
+  const trigger = page.getByRole("button", {
+    name: "Open admin menu",
+    exact: true,
+  });
+  if (await trigger.isVisible()) await trigger.click();
+}
 test("owner securely manages products, photos and accepted orders", async ({
   page,
   request,
@@ -195,7 +202,9 @@ test("owner securely manages products, photos and accepted orders", async ({
     .getByRole("button", { name: "Create product", exact: true })
     .click();
   await expect(page).toHaveURL(/\/admin\/products\/[^/]+\/edit\?saved=1$/);
-  await expect(page.getByRole("status")).toHaveText("Product saved.");
+  await expect(
+    page.getByRole("status").filter({ hasText: /^Product saved\.$/ }),
+  ).toBeVisible();
   await page
     .getByLabel("Product name", { exact: true })
     .fill("Owner edited jewellery");
@@ -274,6 +283,7 @@ test("owner securely manages products, photos and accepted orders", async ({
   });
   expect(placed.ok(), await placed.text()).toBe(true);
   const orderNumber = (await placed.json()).data.orderNumber;
+  await openAdminMenu(page);
   await page.getByRole("link", { name: "Orders", exact: true }).click();
   await page.getByRole("link", { name: orderNumber, exact: true }).click();
   await expect(
@@ -315,7 +325,8 @@ test("owner securely manages products, photos and accepted orders", async ({
   expect((await duplicate.json()).data.completedAt).toBe(
     detail.data.completedAt,
   );
-  await page.getByRole("link", { name: "Overview", exact: true }).click();
+  await openAdminMenu(page);
+  await page.getByRole("link", { name: "Dashboard", exact: true }).click();
   await expect(
     page
       .locator(".admin-metrics article")
@@ -348,7 +359,9 @@ test("owner securely manages products, photos and accepted orders", async ({
     .getByRole("dialog")
     .getByRole("button", { name: "Archive product", exact: true })
     .click();
-  await expect(page.getByRole("status")).toHaveText("Product archived.");
+  await expect(
+    page.getByRole("status").filter({ hasText: /^Product archived\.$/ }),
+  ).toBeVisible();
   expect((await request.get(`/api/v1/products/${f.slug}`)).status()).toBe(404);
   // Exercise safe deletion of an unused product through the same owner interface.
   const unused = await page.request.post("/api/v1/admin/products", {
@@ -378,7 +391,10 @@ test("owner securely manages products, photos and accepted orders", async ({
     .getByRole("dialog")
     .getByRole("button", { name: "Delete product", exact: true })
     .click();
-  await expect(page.getByRole("status")).toHaveText("Product deleted.");
+  await expect(
+    page.getByRole("status").filter({ hasText: /^Product deleted\.$/ }),
+  ).toBeVisible();
+  await openAdminMenu(page);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/login$/);
   expect((await page.request.get("/api/v1/admin/orders")).status()).toBe(401);

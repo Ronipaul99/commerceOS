@@ -5,6 +5,8 @@ import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 import { adminRoutes, uploadedImageRoutes } from "./modules/admin/routes.js";
 import type { ImageStorage } from "./integrations/image-storage.js";
+import type { AdminEmail } from "./integrations/admin-email.js";
+import { contentKeySchema, contentValueSchema } from "@tiyas/shared";
 import type { ApiConfig } from "./config/env.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
 import { databasePlugin } from "./plugins/database.js";
@@ -21,6 +23,7 @@ export async function buildApp(
     gateway?: PaymentGateway;
     background?: boolean;
     storage?: ImageStorage;
+    email?: AdminEmail;
   } = {},
 ) {
   const app = Fastify({
@@ -71,6 +74,18 @@ export async function buildApp(
     }
   });
   await app.register(catalogRoutes, { prefix: "/api/v1" });
+  app.get("/api/v1/content/:key", async (req) => {
+    const key = contentKeySchema.parse((req.params as { key: string }).key);
+    const document = await app.db.contentDocument.findUnique({
+      where: { key },
+      select: { published: true },
+    });
+    return {
+      data: document?.published
+        ? contentValueSchema.parse(document.published)
+        : null,
+    };
+  });
   await app.register(checkoutRoutes, {
     prefix: "/api/v1",
     config,
@@ -81,6 +96,7 @@ export async function buildApp(
     prefix: "/api/v1/admin",
     config,
     storage: options.storage,
+    email: options.email,
   });
   await app.register(uploadedImageRoutes, { config, storage: options.storage });
   return app;

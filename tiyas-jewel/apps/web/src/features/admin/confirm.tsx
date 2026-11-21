@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { AdminSpinner } from "./loading-ui";
 export function AdminConfirm({
   open,
   onClose,
@@ -16,6 +17,7 @@ export function AdminConfirm({
   onConfirm: () => Promise<void>;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   useEffect(() => {
@@ -31,13 +33,14 @@ export function AdminConfirm({
     <dialog
       className="admin-dialog"
       ref={ref}
-      aria-labelledby="admin-confirm-title"
+      aria-labelledby={titleId}
+      aria-busy={busy}
       onCancel={(e) => {
         if (busy) e.preventDefault();
         else dismiss();
       }}
     >
-      <h2 id="admin-confirm-title">{title}</h2>
+      <h2 id={titleId}>{title}</h2>
       <p>{description}</p>
       {error && (
         <p className="admin-error" role="alert">
@@ -46,6 +49,7 @@ export function AdminConfirm({
       )}
       <div className="admin-actions">
         <button
+          type="button"
           className="admin-button admin-button-light"
           disabled={busy}
           onClick={dismiss}
@@ -53,6 +57,7 @@ export function AdminConfirm({
           Cancel
         </button>
         <button
+          type="button"
           className="admin-button"
           disabled={busy}
           onClick={async () => {
@@ -68,6 +73,7 @@ export function AdminConfirm({
             }
           }}
         >
+          {busy && <AdminSpinner />}
           {busy ? "Working…" : label}
         </button>
       </div>

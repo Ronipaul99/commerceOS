@@ -9,6 +9,13 @@ import {
   adminOrderQuerySchema,
   adminParamsSchema,
   adminVersionSchema,
+  contentKeySchema,
+  contentSaveSchema,
+  contentPublishSchema,
+  otpRequestSchema,
+  otpCompleteSchema,
+  adminUserInputSchema,
+  adminUserUpdateSchema,
 } from "@tiyas/shared";
 import type { ApiConfig } from "../../config/env.js";
 import { Prisma } from "../../generated/prisma/client.js";
@@ -20,9 +27,12 @@ import { adminAuth } from "./auth.js";
 import { adminCatalog } from "./catalog.js";
 import { adminOrders } from "./orders.js";
 import { AdminError } from "./errors.js";
+import { adminContent } from "./content.js";
+import { adminAccess } from "./access.js";
+import { adminEmail, type AdminEmail } from "../../integrations/admin-email.js";
 export async function adminRoutes(
   app: FastifyInstance,
-  options: { config: ApiConfig; storage?: ImageStorage },
+  options: { config: ApiConfig; storage?: ImageStorage; email?: AdminEmail },
 ) {
   const auth = adminAuth(app, options.config),
     catalog = adminCatalog(
@@ -30,6 +40,12 @@ export async function adminRoutes(
       options.storage ?? imageStorage(options.config),
     ),
     orders = adminOrders(app.db);
+  const content = adminContent(app.db),
+    access = adminAccess(
+      app.db,
+      options.config,
+      options.email ?? adminEmail(options.config),
+    );
   await app.register(rateLimit, { max: 180, timeWindow: "1 minute" });
   app.post(
     "/login",
@@ -37,6 +53,48 @@ export async function adminRoutes(
     async (req, reply) => {
       const body = adminLoginSchema.parse(req.body);
       return auth.login(req, reply, body.email, body.password);
+    },
+  );
+  app.post(
+    "/access/request",
+    { config: { rateLimit: { max: 5, timeWindow: "15 minutes" } } },
+    async (req) => {
+      auth.checkOrigin(req);
+      const body = otpRequestSchema.parse(req.body);
+      // Missing delivery configuration is global, independent of the supplied address.
+      if (
+        !options.email &&
+        (!options.config.SMTP_HOST ||
+          !options.config.SMTP_FROM ||
+          !options.config.SMTP_USER ||
+          !options.config.SMTP_PASSWORD ||
+          !options.config.ADMIN_OTP_SECRET)
+      )
+        throw new AdminError(
+          "EMAIL_UNAVAILABLE",
+          "Email delivery is not configured. Contact the store owner.",
+          503,
+        );
+      try {
+        await access.send(body.email, body.purpose);
+      } catch {
+        req.log.warn("Admin OTP email delivery failed");
+      }
+      return { data: { ok: true } };
+    },
+  );
+  app.post(
+    "/access/complete",
+    { config: { rateLimit: { max: 10, timeWindow: "15 minutes" } } },
+    async (req) => {
+      auth.checkOrigin(req);
+      const body = otpCompleteSchema.parse(req.body);
+      return access.complete(
+        body.email,
+        body.purpose,
+        body.code,
+        body.password,
+      );
     },
   );
   await app.register(async (protectedApp) => {
@@ -49,7 +107,7 @@ export async function adminRoutes(
         if (error.code === "P2002")
           throw new AdminError(
             "DUPLICATE_VALUE",
-            "A slug, SKU or image is already in use.",
+            "An email, slug, SKU or image is already in use.",
             409,
           );
         if (error.code === "P2003")
@@ -68,9 +126,63 @@ export async function adminRoutes(
         email: req.admin!.email,
         csrfToken: req.admin!.csrfToken,
         expiresAt: req.admin!.expiresAt.toISOString(),
+        name: req.admin!.name,
+        role: req.admin!.role,
       },
     }));
     protectedApp.post("/logout", async (req, reply) => auth.logout(req, reply));
+    protectedApp.get("/content", async () => content.list());
+    protectedApp.get("/content/:key", async (req) =>
+      content.get(contentKeySchema.parse((req.params as { key: string }).key)),
+    );
+    protectedApp.put("/content/:key", async (req) => {
+      const body = contentSaveSchema.parse(req.body);
+      return content.save(
+        contentKeySchema.parse((req.params as { key: string }).key),
+        body.version,
+        body.value,
+      );
+    });
+    protectedApp.post("/content/:key/publish", async (req) => {
+      const body = contentPublishSchema.parse(req.body);
+      return content.save(
+        contentKeySchema.parse((req.params as { key: string }).key),
+        body.version,
+        body.value,
+        body.published,
+      );
+    });
+    protectedApp.delete("/content/:key", async (req) => {
+      const body = z
+        .object({ version: z.number().int().positive() })
+        .strict()
+        .parse(req.body);
+      return content.remove(
+        contentKeySchema.parse((req.params as { key: string }).key),
+        body.version,
+      );
+    });
+    protectedApp.get("/users", async () => access.list());
+    protectedApp.post("/users", async (req, reply) => {
+      const result = await access.invite(adminUserInputSchema.parse(req.body));
+      reply.code(201);
+      return result;
+    });
+    protectedApp.put("/users/:id", async (req) =>
+      access.update(
+        adminParamsSchema.parse(req.params).id,
+        adminUserUpdateSchema.parse(req.body),
+      ),
+    );
+    protectedApp.post("/users/:id/resend", async (req) => {
+      z.object({}).strict().parse(req.body);
+      const user = await app.db.adminUser.findUnique({
+        where: { id: adminParamsSchema.parse(req.params).id },
+      });
+      if (!user) throw new AdminError("NOT_FOUND", "Admin not found.", 404);
+      await access.send(user.email, user.invited ? "INVITE" : "RESET");
+      return { data: { ok: true } };
+    });
     protectedApp.get("/dashboard", async () => orders.dashboard());
     protectedApp.get("/options", async () => catalog.options());
     protectedApp.get("/products", async (req) =>
@@ -167,7 +279,15 @@ export async function uploadedImageRoutes(
       : (await app.db.orderItem.count({
           where: { image: `/images/uploads/${file}` },
         })) > 0;
-    if (!published && !historical && !(await auth.session(req)))
+    const publishedContent = await app.db.contentAssetUse.count({
+      where: { assetId: id, published: true },
+    });
+    if (
+      !published &&
+      !historical &&
+      !publishedContent &&
+      !(await auth.session(req))
+    )
       throw new AdminError("NOT_FOUND", "Image not found.", 404);
     let buffer: Buffer;
     try {

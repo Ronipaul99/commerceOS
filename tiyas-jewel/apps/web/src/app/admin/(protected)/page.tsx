@@ -1,9 +1,13 @@
-import Link from "next/link";
+import { AdminLink as Link } from "@/features/admin/activity";
 import { Package, CheckCircle2, ShoppingBag, Plus } from "lucide-react";
 import { adminDashboardSchema } from "@tiyas/shared";
 import { adminGet } from "@/lib/admin-server";
+import { requireAdmin } from "@/lib/admin-server";
+import { redirect } from "next/navigation";
 import { AdminHeading, OrderTable } from "@/features/admin/common";
 export default async function DashboardPage() {
+  if ((await requireAdmin()).role === "CONTENT_MANAGER")
+    redirect("/admin/content");
   const { data } = await adminGet("/dashboard", adminDashboardSchema);
   return (
     <>

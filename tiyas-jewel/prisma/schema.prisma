@@ -105,6 +105,10 @@ model ProductCollection {
 }
 
 model AdminUser {
+  name         String   @default("") @db.VarChar(100)
+  role         AdminRole @default(OWNER)
+  invited      Boolean @default(false)
+  otps         AdminOtp[]
   sessions     AdminSession[]
   imageAssets  ImageAsset[]
   id           String   @id @default(cuid())
@@ -205,6 +209,7 @@ model AdminSession {
 }
 
 model ImageAsset {
+  contentUses ContentAssetUse[]
   id String @id @db.Uuid
   objectKey String @unique
   width Int
@@ -214,6 +219,41 @@ model ImageAsset {
   uploader AdminUser @relation(fields: [uploaderId], references: [id], onDelete: Restrict)
   image ProductImage?
   createdAt DateTime @default(now()) @db.Timestamptz(3)
+}
+
+enum AdminRole {
+  OWNER
+  ADMIN
+  CONTENT_MANAGER
+}
+model AdminOtp {
+  id String @id @default(uuid()) @db.Uuid
+  adminId String
+  admin AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  purpose String @db.VarChar(10)
+  codeHash String @db.Char(64)
+  attempts Int @default(0)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@unique([adminId, purpose])
+}
+model ContentDocument {
+  key String @id @db.VarChar(130)
+  draft Json
+  published Json?
+  version Int @default(1)
+  publishedAt DateTime? @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  assets ContentAssetUse[]
+}
+model ContentAssetUse {
+  documentKey String @db.VarChar(130)
+  document ContentDocument @relation(fields: [documentKey], references: [key], onDelete: Cascade, onUpdate: NoAction)
+  assetId String @db.Uuid
+  asset ImageAsset @relation(fields: [assetId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  published Boolean
+  @@id([documentKey, assetId, published])
+  @@index([assetId, published])
 }
 model Payment {
   id String @id @default(cuid())

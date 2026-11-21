@@ -63,10 +63,42 @@ export function adminOrders(db: PrismaClient) {
     page: number;
     limit: number;
     status: "NEW" | "COMPLETED" | "ALL";
+    q?: string;
+    payment?: "ALL" | "ONLINE" | "COD";
   }) {
     const where = {
       ...acceptedOrders,
       ...(q.status === "ALL" ? {} : { operationalStatus: q.status }),
+      ...(q.payment && q.payment !== "ALL" ? { paymentMethod: q.payment } : {}),
+      ...(q.q
+        ? {
+            AND: [
+              {
+                OR: [
+                  {
+                    orderNumber: {
+                      contains: q.q,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                  {
+                    customerName: {
+                      contains: q.q,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                  {
+                    customerEmail: {
+                      contains: q.q,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                  { customerMobile: { contains: q.q } },
+                ],
+              },
+            ],
+          }
+        : {}),
     };
     return db.$transaction(
       async (tx) => {

@@ -48,6 +48,8 @@ declare module "fastify" {
       sessionId: string;
       expiresAt: Date;
       csrfToken: string;
+      name: string;
+      role: "OWNER" | "ADMIN" | "CONTENT_MANAGER";
     } | null;
   }
 }
@@ -84,6 +86,8 @@ export function adminAuth(app: FastifyInstance, config: ApiConfig) {
       sessionId: entry.id,
       expiresAt: entry.expiresAt,
       csrfToken: csrfFor(token),
+      name: entry.admin.name,
+      role: entry.admin.role,
     };
   }
   async function requireAdmin(req: FastifyRequest) {
@@ -91,6 +95,25 @@ export function adminAuth(app: FastifyInstance, config: ApiConfig) {
     req.admin = await session(req);
     if (!req.admin)
       throw new AdminError("UNAUTHORIZED", "Please sign in to continue.", 401);
+    const route = (req.routeOptions.url ?? req.url.split("?")[0]!).replace(
+      /^\/api\/v1\/admin/,
+      "",
+    );
+    if (route.startsWith("/users") && req.admin.role !== "OWNER")
+      throw new AdminError(
+        "FORBIDDEN",
+        "Only the store owner can manage admin access.",
+        403,
+      );
+    if (
+      req.admin.role === "CONTENT_MANAGER" &&
+      !/^\/(?:session|logout|content(?:\/|$)|images(?:\/|$))/.test(route)
+    )
+      throw new AdminError(
+        "FORBIDDEN",
+        "Your role has access to website content only.",
+        403,
+      );
     if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
       const actual = req.headers["x-csrf-token"];
       if (
@@ -114,7 +137,7 @@ export function adminAuth(app: FastifyInstance, config: ApiConfig) {
     checkOrigin(req);
     const admin = await app.db.adminUser.findUnique({ where: { email } });
     const matches = await verifyPassword(password, admin?.passwordHash);
-    if (!matches || !admin?.active)
+    if (!matches || !admin?.active || admin.invited)
       throw new AdminError(
         "LOGIN_FAILED",
         "Email or password is incorrect.",
@@ -155,6 +178,8 @@ export function adminAuth(app: FastifyInstance, config: ApiConfig) {
         email: admin.email,
         csrfToken: csrfFor(token),
         expiresAt: expiresAt.toISOString(),
+        name: admin.name,
+        role: admin.role,
       },
     };
   }

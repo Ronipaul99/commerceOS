@@ -7,8 +7,8 @@ export default async function NewProductPage() {
   return (
     <>
       <AdminHeading
-        title="Add product"
-        description="Create a product with clear details and actual product photography."
+        title="Create Product"
+        description="Add a new product to your store."
       />
       <AdminProductForm options={data} />
     </>

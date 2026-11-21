@@ -13,8 +13,11 @@ import { presentProduct } from "@/lib/catalog-presentation";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { formatINR } from "@/lib/money";
 import { CartContent } from "./cart-content";
+import { useContentNavigation } from "./content-navigation";
 export function MobileMenu({ onClose }: { onClose: () => void }) {
   const { saved } = useStorefront();
+  const navigation=useContentNavigation();
+  if(navigation) return <Modal title="Explore Tiyas" onClose={onClose} side><nav className="mobile-menu-links" aria-label="Mobile navigation">{navigation.mobile.map((link,i)=><Link key={`${i}-${link.href}`} href={link.href} onClick={onClose}>{link.label}<ArrowRight size={20} aria-hidden="true" /></Link>)}</nav></Modal>;
   return (
     <Modal title="Explore Tiyas" onClose={onClose} side>
       <nav className="mobile-menu-links" aria-label="Mobile navigation">

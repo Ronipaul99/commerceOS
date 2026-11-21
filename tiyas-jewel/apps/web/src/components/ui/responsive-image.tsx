@@ -22,6 +22,7 @@ export function ResponsiveImage({
       fill
       sizes={sizes}
       preload={preload}
+      unoptimized={src.startsWith("/images/uploads/")}
       style={position ? { objectPosition: position } : undefined}
     />
   );
@@ -40,6 +41,7 @@ export function ArtDirectedImage({
 }) {
   const { props: desktopProps } = getImageProps({
     src: desktop,
+    unoptimized: desktop.startsWith("/images/uploads/"),
     alt,
     width: 2400,
     height: 800,
@@ -49,6 +51,7 @@ export function ArtDirectedImage({
   });
   const { props: mobileProps } = getImageProps({
     src: mobile,
+    unoptimized: mobile.startsWith("/images/uploads/"),
     alt,
     width: 900,
     height: 1125,
@@ -58,7 +61,7 @@ export function ArtDirectedImage({
     <picture>
       <source
         media="(max-width: 767px)"
-        srcSet={mobileProps.srcSet}
+        srcSet={mobileProps.srcSet ?? mobileProps.src}
         sizes="100vw"
       />
       {/* getImageProps provides Next.js optimized URLs for this art-directed picture. */}

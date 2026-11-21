@@ -1,6 +1,8 @@
-import Link from "next/link";
+import { AdminLink as Link } from "@/features/admin/activity";
 import { formatINR as formatMoney } from "@/lib/money";
 import type { AdminOrderSummary } from "@tiyas/shared";
+import { Eye, CheckCircle2, Clock } from "lucide-react";
+import { OrderCompleteAction } from "./order-actions";
 export function AdminHeading({
   title,
   description,
@@ -15,7 +17,7 @@ export function AdminHeading({
   return (
     <header className={`admin-page-heading ${className}`}>
       <div>
-        <p className="admin-eyebrow">TIYAS JEWEL / STORE OWNER</p>
+        <p className="admin-eyebrow">TIYAS JEWEL / ADMIN CONSOLE</p>
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
@@ -37,6 +39,7 @@ export function OrderTable({ orders }: { orders: AdminOrderSummary[] }) {
             <th>Total</th>
             <th>Payment</th>
             <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -67,9 +70,30 @@ export function OrderTable({ orders }: { orders: AdminOrderSummary[] }) {
                 </small>
               </td>
               <td>
-                <Status>
+                <span
+                  className={`admin-status ${o.operationalStatus === "COMPLETED" ? "admin-status-green" : "admin-status-amber"}`}
+                >
+                  {o.operationalStatus === "COMPLETED" ? (
+                    <CheckCircle2 size={15} />
+                  ) : (
+                    <Clock size={15} />
+                  )}
                   {o.operationalStatus === "NEW" ? "New" : "Completed"}
-                </Status>
+                </span>
+              </td>
+              <td>
+                <div className="admin-row-actions">
+                  <Link
+                    className="admin-icon-button"
+                    href={`/admin/orders/${o.id}`}
+                    aria-label={`View order ${o.orderNumber}`}
+                  >
+                    <Eye size={18} />
+                  </Link>
+                  {o.operationalStatus === "NEW" && (
+                    <OrderCompleteAction id={o.id} />
+                  )}
+                </div>
               </td>
             </tr>
           ))}

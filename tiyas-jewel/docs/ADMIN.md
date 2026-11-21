@@ -1,8 +1,10 @@
 # Stage 05: store administration
 
-The existing Next.js app now has exactly seven admin screens: `/admin/login`, `/admin`, `/admin/products`, `/admin/products/new`, `/admin/products/[id]/edit`, `/admin/orders` and `/admin/orders/[id]`. No customer accounts, public registration, analytics, courier, refund or warehouse modules are introduced. Storefront presentation and guest payment/checkout rules are preserved.
+The original Stage 05 screens are `/admin/login`, `/admin`, `/admin/products`, `/admin/products/new`, `/admin/products/[id]/edit`, `/admin/orders` and `/admin/orders/[id]`. The subsequent requested seven-design update adds website content, owner-managed admin users and email OTP access flows; see [ADMIN_REDESIGN_CMS.md](ADMIN_REDESIGN_CMS.md) and [SMTP_SETUP.md](SMTP_SETUP.md). No customer accounts, public registration, analytics, courier, refund or warehouse modules are introduced. Storefront presentation and guest payment/checkout rules are preserved.
 
 ## Provision the owner
+
+Admin request progress, route/image skeletons and modal behavior are described in [ADMIN_LOADING_STATES.md](ADMIN_LOADING_STATES.md).
 
 1. Configure the API environment and review the target database. Deploy migrations with `npm run db:migrate`.
 2. Run `npm run admin:create` from the project root. The terminal prompts for an email and a hidden password of at least 14 characters, with confirmation. There is no default password and the development catalog seed creates no admin.
@@ -23,7 +25,7 @@ Protected Next.js layouts and server HTTP requests enforce sessions; Fastify ind
 
 ## Secured REST endpoints
 
-All paths below begin with `/api/v1/admin`. Only `POST /login` is public.
+All paths below begin with `/api/v1/admin`. Login and the subsequent rate-limited email OTP request/completion routes are public; all administration endpoints independently enforce session and role authorization.
 
 | Method | Path | Purpose |
 | --- | --- | --- |

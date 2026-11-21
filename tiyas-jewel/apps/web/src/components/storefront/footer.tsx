@@ -4,6 +4,7 @@ import { ScrollToTop } from "./panels";
 import { storefrontConfig } from "@/lib/storefront-config";
 import { campaignCollections } from "@/lib/homepage-config";
 import { BrandIdentity } from "./brand-mark";
+import type { NavigationContent } from "@tiyas/shared";
 const groups = [
   {
     title: "Shop",
@@ -40,7 +41,7 @@ const groups = [
     ],
   },
 ];
-export function Footer() {
+export function Footer({menus}:{menus?:NavigationContent} = {}) {
   return (
     <footer className="site-footer tj-footer">
       <div className="tj-shell tj-footer-main">
@@ -69,7 +70,7 @@ export function Footer() {
           </div>
         </div>
         <div className="tj-footer-groups">
-          {groups.map((g) => (
+          {(menus ? menus.footer.map(g=>({title:g.title,links:g.links.map(l=>[l.label,l.href])})) : groups).map((g) => (
             <FooterGroup key={g.title} {...g} />
           ))}
         </div>

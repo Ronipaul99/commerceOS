@@ -1,6 +1,6 @@
 # TIYAS JEWEL - Approved festive storefront
 
-A single jewellery storefront for India: Next.js App Router, a Fastify API and PostgreSQL. Stages 01-04 are implemented: the approved homepage, shopping, persistent cart/wishlist and secure guest checkout with transactional stock holds, COD and a Razorpay test adapter. Admin remains Stage 05.
+A single jewellery storefront for India: Next.js App Router, a Fastify API and PostgreSQL. Stages 01-05 include the approved storefront, shopping, persistent cart/wishlist, guest checkout, transactional stock holds, COD, Razorpay test integration and secure store administration.
 
 The newly approved festive homepage redesign is implemented on top of Stages 01-04. See [redesign notes](docs/HOMEPAGE_REDESIGN.md) for real API product composition, explicitly approved fallback groups, assets, responsive behavior and verification.
 
@@ -89,3 +89,5 @@ Responses use `{ data }`, with `{ pagination }` for products. All money is integ
 Visit /admin/login in the existing application. Apply migrations, then run `npm.cmd run admin:create` (PowerShell) to create the owner using hidden terminal prompts. No default credentials or public registration exist. The admin manages only products/images and accepted orders, with manual NEW ? COMPLETED fulfillment. Read [ADMIN.md](docs/ADMIN.md) for protected API/session behavior, setup, local/OCI image storage and secure deployment requirements. Production cookies require HTTPS. Test/development mode supports local HTTP; production cookie security is never disabled.
 
 Set STORAGE_ADAPTER=local for development (persistent Compose volume), or configure the private OCI adapter through backend-only OCI_* variables. Database migrations and test fixtures must use a dedicated database; never run reset/seed tests against a live store. Stage 05 verification and screenshots are recorded in docs/STAGE05_VERIFICATION.md. Stage 06 deployment is outside this implementation.
+
+The seven-screen admin redesign adds `/admin/content` for homepage sections, banners, static pages and menus, with private drafts, previews and publication. Owners manage additional administrators/content managers through `/admin/users`. Password recovery and invitations use SMTP email OTPs. Apply the additive content migration before running the updated API; configure the private SMTP settings described in [SMTP_SETUP.md](docs/SMTP_SETUP.md). See [ADMIN_REDESIGN_CMS.md](docs/ADMIN_REDESIGN_CMS.md) for routes, authorization, assets and publishing behavior.

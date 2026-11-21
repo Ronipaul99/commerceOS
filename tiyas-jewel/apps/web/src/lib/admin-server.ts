@@ -20,6 +20,7 @@ async function adminFetch(path: string) {
     signal: AbortSignal.timeout(10000),
   });
   if (response.status === 401) redirect("/admin/login");
+  if (response.status === 403) redirect("/admin/content");
   if (response.status === 404) notFound();
   if (!response.ok)
     throw Error(

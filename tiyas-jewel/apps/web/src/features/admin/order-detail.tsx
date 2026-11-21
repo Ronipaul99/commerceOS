@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { AdminImage as Image } from "@/features/admin/image";
+import { useAdminRouter as useRouter } from "@/features/admin/activity";
 import { adminOrderResponseSchema, type AdminOrder } from "@tiyas/shared";
 import { formatINR } from "@/lib/money";
 import { useAdmin } from "./shell";

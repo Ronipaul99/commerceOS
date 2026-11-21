@@ -1,7 +1,7 @@
 "use client";
-import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { AdminLink as Link } from "@/features/admin/activity";
+import { AdminImage as Image } from "@/features/admin/image";
+import { useAdminRouter as useRouter } from "@/features/admin/activity";
 import { useState } from "react";
 import { Pencil, Archive, Trash2 } from "lucide-react";
 import type { AdminProduct } from "@tiyas/shared";
@@ -64,7 +64,11 @@ export function AdminProducts({ products }: { products: AdminProduct[] }) {
                       </div>
                     </div>
                   </td>
-                  <td>{p.category.name}</td>
+                  <td>
+                    <span className="admin-category-chip">
+                      {p.category.name}
+                    </span>
+                  </td>
                   <td>{formatINR(p.pricePaise)}</td>
                   <td>
                     {p.variants.length
@@ -78,7 +82,7 @@ export function AdminProducts({ products }: { products: AdminProduct[] }) {
                   </td>
                   <td>
                     <span
-                      className={`admin-status ${p.active ? "" : "admin-status-muted"}`}
+                      className={`admin-status ${p.active ? "admin-status-green" : "admin-status-muted"}`}
                     >
                       {p.active ? "Active" : "Archived"}
                     </span>
