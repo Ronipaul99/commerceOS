@@ -42,6 +42,8 @@ if (!parsed.success)
   );
 const upstream = parsed.data.replace(/\/$/, "");
 const nextConfig: NextConfig = {
+  // Keep review builds separate from an owner's running development preview.
+  distDir: process.env.UI_REVIEW_BUILD === "true" ? ".next-ui-review" : ".next",
   // Container builds launch the generated server; host builds use next start.
   output:
     process.env.NEXT_OUTPUT_STANDALONE === "true" ? "standalone" : undefined,

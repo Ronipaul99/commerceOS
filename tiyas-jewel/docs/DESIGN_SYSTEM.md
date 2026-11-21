@@ -43,7 +43,7 @@ Locally hosted Cormorant Garamond supplies editorial headings; DM Sans supplies 
 
 Desktop: continuous hero photograph with live copy on the left; category intro plus four-image gallery; four product columns; wide celebration campaign; asymmetric statement and story sections. Mobile: jewelry crop first, headline/CTA below; horizontal category gallery; two-column products; portrait celebration crop with bottom-aligned copy; statement text before photography; compact side-by-side story; two-column styling gallery; vertical service benefits and collapsible footer. The page is not a mechanical stack of desktop sections.
 
-Breakpoints follow the handoff's engineering conventions: mobile below 600px, tablet 600-1023px and desktop from 1024px. The header collapses early for legibility. Narrow tablets use an image-first hero with a two-column copy/CTA area to preserve the jewellery crop. Validation covers 320, 390, 600, 834, 1024, 1280 and 1440px. Reduced motion disables smooth scrolling and transitions. No autoplay, animated carousel or video is used.
+Breakpoints follow the handoff's engineering conventions: mobile below 600px, tablet 600-1023px and desktop from 1024px. The header collapses early for legibility. Narrow tablets use an image-first hero with a two-column copy/CTA area to preserve the jewellery crop. Validation covers 320, 390, 600, 834, 1024, 1280 and 1440px. Reduced motion disables smooth scrolling and transitions. The site now uses an owner-requested 80% screen density, including admin pages. The homepage hero rotates every five seconds with pause/start controls; focus, hover, visibility and reduced-motion preferences control playback. See [UI_DENSITY.md](UI_DENSITY.md).
 
 ## Stage 03 shopping extension
 

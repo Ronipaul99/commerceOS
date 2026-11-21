@@ -41,6 +41,7 @@ type State = {
   removeFromBag: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => Promise<boolean>;
   refreshCart: () => void;
+  restoreCartItems: (items: CartItemRef[]) => Promise<boolean>;
   completePurchase: (items: CartItemRef[], orderNumber: string) => void;
 };
 const Context = createContext<State | null>(null);
@@ -273,6 +274,21 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
         removeFromBag,
         updateQuantity,
         refreshCart: store.refresh,
+        restoreCartItems: (items) =>
+          enqueue(async () => {
+            const before = store.getSnapshot().cart;
+            const selections = new Map(
+              before.map((item) => [cartKey(item), item]),
+            );
+            for (const item of items) selections.set(cartKey(item), item);
+            if (selections.size > 50) {
+              setAnnouncement(
+                "Your bag can hold up to 50 selections. Remove a piece before retrying.",
+              );
+              return false;
+            }
+            return resolveChange([...selections.values()], before);
+          }),
         completePurchase: (items, orderNumber) => {
           const state = store.getSnapshot();
           if (state.completedOrders.includes(orderNumber)) return;

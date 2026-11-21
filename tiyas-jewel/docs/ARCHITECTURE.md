@@ -40,7 +40,7 @@ Fastify supplies JSON request logs and generated correlation IDs, Helmet securit
 
 ## Frontend and proxy
 
-The newly approved festive homepage uses server components for editorial composition and streamed, deduplicated HTTP catalog queries. Client islands own manual carousels, native scroll rails, shared bag/wishlist actions and reduced-motion reveals. New Arrivals uses backend newest ordering; four collection requests use actual membership and the explicitly approved labelled current-catalog fallback when empty. No hardcoded product/price/stock fallback is rendered. Eight known new collection URLs have clear frontend preview destinations until their real API records/membership are configured; existing and unknown collection route behavior is preserved. See HOMEPAGE_REDESIGN.md.
+The newly approved festive homepage uses server components for editorial composition and streamed, deduplicated HTTP catalog queries. Client islands own controlled five-second hero autoplay, manual carousel controls, native scroll rails, shared bag/wishlist actions and reduced-motion reveals. Site-wide storefront/admin sizing is set to 80%; see UI_DENSITY.md. New Arrivals uses backend newest ordering; four collection requests use actual membership and the explicitly approved labelled current-catalog fallback when empty. No hardcoded product/price/stock fallback is rendered. Eight known new collection URLs have clear frontend preview destinations until their real API records/membership are configured; existing and unknown collection route behavior is preserved. See HOMEPAGE_REDESIGN.md.
 
 Campaigns and fonts are local; dedicated mobile art direction uses Next.js optimized picture sources. Concept campaign assets are never substituted for actual product imagery, and catalog provenance labels remain. Header/footer use the approved burgundy identity; cart/checkout services and SEO metadata remain unchanged. Newsletter is still truthful when no subscription backend is supplied.
 
@@ -55,6 +55,8 @@ Stages 02 and 03 are implemented. Stage 04 guest orders, checkout, Razorpay test
 ## Checkout boundary
 
 See CHECKOUT.md for immutable snapshots, precise totals, idempotency, token privacy, webhook handling, reservation expiry/late capture and the in-process maintenance loop. Only accepted orders receive operational state NEW. Stage 05 adds minimal authorized admin fulfillment (NEW to COMPLETED); no courier, queue or complex OMS is introduced.
+
+Private payment-failed and confirmation views reuse those APIs and normalize routes from authoritative payment/acceptance state. Explicit failed-payment recovery reconciles before restoring identifier-only cart selections and requiring a new quote; ambiguous attempts retain their original token/key. Stored order dates extend the shared response compatibly and render in IST. Database sessions use UTC for accurate Prisma pg timestamp decoding. Downloadable escaped order receipts contain no bearer token; they are not tax invoices. See [ORDER_OUTCOMES.md](ORDER_OUTCOMES.md).
 
 
 ## Administration boundary

@@ -17,7 +17,7 @@ export function LotusMark({ className = "" }: { className?: string }) {
     </svg>
   );
 }
-export function BrandIdentity() {
+export function BrandIdentity({ priority = false }: { priority?: boolean }) {
   return (
     <span className="tj-brand-identity tj-brand-image">
       <Image
@@ -26,6 +26,8 @@ export function BrandIdentity() {
         alt="Tiyas Jewels - Timeless Elegance, Made for You"
         width={1200}
         height={400}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
         sizes="(max-width: 767px) 170px, (max-width: 1023px) 210px, 280px"
       />
     </span>

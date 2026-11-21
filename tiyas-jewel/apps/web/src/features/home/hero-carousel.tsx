@@ -1,22 +1,88 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-import { heroSlides } from "@/lib/homepage-config";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Pause,
+  Play,
+} from "lucide-react";
+import { heroAutoplayIntervalMs, heroSlides } from "@/lib/homepage-config";
 import { ArtDirectedImage } from "@/components/ui/responsive-image";
+
+function subscribeMotion(onChange: () => void) {
+  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+function subscribeVisibility(onChange: () => void) {
+  document.addEventListener("visibilitychange", onChange);
+  return () => document.removeEventListener("visibilitychange", onChange);
+}
+
 export function HeroCarousel() {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [inView, setInView] = useState(false);
+  const root = useRef<HTMLElement>(null);
+  const pausedBeforePointer = useRef(false);
+  const reducedMotion = useSyncExternalStore(
+    subscribeMotion,
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => true,
+  );
+  const pageVisible = useSyncExternalStore(
+    subscribeVisibility,
+    () => !document.hidden,
+    () => false,
+  );
+  const rotating =
+    !paused && !hovered && inView && pageVisible && !reducedMotion;
   const touch = useRef<number | null>(null);
-  const move = (delta: number) =>
+  const move = (delta: number) => {
     setActive(
       (index) => (index + delta + heroSlides.length) % heroSlides.length,
     );
+  };
+  useEffect(() => {
+    const element = root.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(
+      ([entry]) =>
+        setInView(!!entry?.isIntersecting && entry.intersectionRatio >= 0.15),
+      { threshold: 0.15 },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!rotating || heroSlides.length < 2) return;
+    const timer = window.setTimeout(
+      () => setActive((index) => (index + 1) % heroSlides.length),
+      heroAutoplayIntervalMs,
+    );
+    return () => window.clearTimeout(timer);
+  }, [active, rotating]);
   const slide = heroSlides[active]!;
   return (
     <section
+      ref={root}
       className="tj-hero"
       aria-label="Festive collections"
       aria-roledescription="carousel"
+      onPointerOver={(event) => {
+        setHovered(
+          event.pointerType === "mouse" &&
+            !!(event.target as HTMLElement).closest("button, a"),
+        );
+      }}
+      onPointerLeave={() => setHovered(false)}
+      onFocusCapture={(event) => {
+        if ((event.target as HTMLElement).matches(":focus-visible"))
+          setPaused(true);
+      }}
       onTouchStart={(e) => {
         touch.current = e.touches[0]?.clientX ?? null;
       }}
@@ -31,6 +97,44 @@ export function HeroCarousel() {
         touch.current = null;
       }}
     >
+      <div className="tj-hero-dots" role="group" aria-label="Campaign controls">
+        <button
+          type="button"
+          className="tj-hero-autoplay"
+          aria-label={
+            reducedMotion
+              ? "Campaign autoplay disabled for reduced motion"
+              : paused
+                ? "Start campaign autoplay"
+                : "Pause campaign autoplay"
+          }
+          disabled={reducedMotion}
+          onPointerDown={() => {
+            pausedBeforePointer.current = paused;
+          }}
+          onClick={(event) => {
+            // Focus stops rotation before a pointer click; preserve the action the user chose.
+            if (event.detail > 0) setPaused(!pausedBeforePointer.current);
+            else setPaused((value) => !value);
+          }}
+        >
+          {paused || reducedMotion ? (
+            <Play size={14} aria-hidden="true" />
+          ) : (
+            <Pause size={14} aria-hidden="true" />
+          )}
+        </button>
+        {heroSlides.map((slide, index) => (
+          <button
+            key={slide.title}
+            aria-label={`Show ${slide.eyebrow}`}
+            aria-pressed={active === index}
+            onClick={() => setActive(index)}
+          >
+            <span />
+          </button>
+        ))}
+      </div>
       <div
         key={slide.title}
         className="tj-hero-slide is-active"
@@ -81,19 +185,11 @@ export function HeroCarousel() {
       >
         <ChevronRight size={22} aria-hidden="true" />
       </button>
-      <div className="tj-hero-dots" aria-label="Choose a campaign">
-        {heroSlides.map((slide, index) => (
-          <button
-            key={slide.title}
-            aria-label={`Show ${slide.eyebrow}`}
-            aria-pressed={active === index}
-            onClick={() => setActive(index)}
-          >
-            <span />
-          </button>
-        ))}
-      </div>
-      <span className="sr-only" role="status" aria-live="polite">
+      <span
+        className="sr-only"
+        role="status"
+        aria-live={rotating ? "off" : "polite"}
+      >
         Campaign {active + 1} of {heroSlides.length}: {slide.title}{" "}
         {slide.secondLine}
       </span>

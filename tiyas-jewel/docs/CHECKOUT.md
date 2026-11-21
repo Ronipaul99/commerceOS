@@ -1,5 +1,7 @@
 # Stage 04 - Guest checkout, payments and order capture
 
+Follow-up: reference-led payment failure and order confirmation, safe retry, persisted dates and downloadable order receipts are documented in [ORDER_OUTCOMES.md](ORDER_OUTCOMES.md). Both private outcome URLs keep bearer tokens in fragments. Existing payment/stock rules remain authoritative.
+
 ## Scope and trust boundary
 
 Next.js renders guest checkout and private confirmation using shared Zod contracts and same-origin HTTP. Fastify alone accesses PostgreSQL, computes money, reserves stock, creates provider orders and verifies payments. No customer accounts, admin UI, courier API or advanced OMS is introduced. Orders have only NEW/COMPLETED operational states; pending attempts have a null operational state and accepted=false.

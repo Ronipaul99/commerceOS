@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { productDetailsSchema } from "../src/schemas/catalog";
+import { productDetailsSchema } from "../src/schemas/catalog.js";
 describe("product jewellery details", () => {
   it("accepts the approved specifications and optional absent fields", () => {
     expect(

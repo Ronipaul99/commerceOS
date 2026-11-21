@@ -331,14 +331,15 @@ export function ProductDetail({
               size={19}
               fill={saved.includes(product.id) ? "currentColor" : "none"}
               strokeWidth={1.3}
+              aria-hidden="true"
             />
             {saved.includes(product.id)
               ? "Saved to your wishlist"
               : "Save to wishlist"}
           </button>
           <p className="shopping-disclaimer">
-            Your bag is saved on this browser. Orders and payments open in a
-            later release.
+            Your bag is saved on this browser. Review delivery and payment
+            options at checkout.
           </p>
           <div className="product-accordions">
             <details open>

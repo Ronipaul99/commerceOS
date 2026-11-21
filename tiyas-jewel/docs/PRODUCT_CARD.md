@@ -1,4 +1,6 @@
-﻿# Shared product card
+# Shared product card
+
+Current screen density is 80% site-wide: the shared design dimensions below render as 208 x 320px on desktop and 132 x 320px at a 390px viewport. See [UI_DENSITY.md](UI_DENSITY.md).
 
 `apps/web/src/components/storefront/product-card.tsx` is the single public shopping card. Homepage arrivals/showcases, shop and collection grids, wishlist and PDP related products already import it. Placement (`default`, `campaign`, `listing`) controls container sizing only; `src/app/product-card.css` owns the common ivory/burgundy skin. Bag/checkout rows and compact search results remain task-specific rows.
 
@@ -25,6 +27,8 @@ The component accepts subtitle, material, weightGrams, size and colors. Optional
 
 ## Behaviour
 
+- Product rails display complete card units and page by whole cards, including the final page and after resizing. Overflowing desktop showcases retain their previous/next controls; keyboard focus brings the complete focused card into view.
+- Full-detail cards use Quick View for variant selection instead of adding another chip row beneath their specifications. Long material/size values have a two-line card preview; Quick View retains complete values. More than four colours use three preview swatches and an all-colours trigger. Each fact uses a semantic description list. These changes preserve every placement's shared width and height. See [UI_CONSISTENCY_AUDIT.md](UI_CONSISTENCY_AUDIT.md).
 - Real images are used in API order with the existing labelled fallback. Image dots are keyboard accessible; alternate hover imagery is used on devices with a precise pointer. Reduced motion is respected.
 - Without a variant selection, the card shows the minimum actual variant price with From and requires a selection. When every actual variant is explicitly mapped to a verified colour, the first available colour is selected by default; unavailable colours are skipped. Size-only products still require a selection. Selecting an available option updates price, image and availability. Out-of-stock options cannot be added. No speculative discount is shown before selecting a variant.
 - Quick View uses the existing native dialog, focus trap, Escape and focus restoration. It shows product information, variant selector, SKU, current price and product-details link. Add closes the preview before opening the existing bag dialog.

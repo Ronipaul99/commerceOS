@@ -91,7 +91,7 @@ export function PaymentActions({
           email: order.customer.email,
           contact: `+91${order.customer.mobile}`,
         },
-        theme: { color: "#241C17" },
+        theme: { color: "#650F2A" },
         handler: (response) => {
           void run(() => checkoutApi.verify(token, response));
         },

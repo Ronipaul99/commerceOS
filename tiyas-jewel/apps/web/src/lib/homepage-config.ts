@@ -83,6 +83,7 @@ export const showcaseSlugs = [
   "temple-jewellery",
   "brace-kundan",
 ] as const;
+export const heroAutoplayIntervalMs = 5_000;
 export const heroSlides = [
   {
     title: "Tyohar",
@@ -204,6 +205,11 @@ export const homepageConfig = {
     href: "/collections/silver-replica",
   },
   contact: null as { label: string; href: string } | null,
+  // Add approved international-format WhatsApp and support email when available.
+  orderSupport: {
+    whatsapp: null as string | null,
+    email: null as string | null,
+  },
   promotions: [] as ApprovedPromotion[],
   reviews: [] as ApprovedReview[],
 };

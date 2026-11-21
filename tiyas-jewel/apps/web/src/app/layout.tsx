@@ -11,6 +11,10 @@ import "./checkout.css";
 import "./homepage.css";
 import "./collections.css";
 import "./product-card.css";
+import "./purchase.css";
+import "./wishlist.css";
+import "./order-result.css";
+import "./density.css";
 
 export const metadata: Metadata = {
   title: {

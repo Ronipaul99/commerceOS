@@ -1,4 +1,6 @@
-﻿# Complete product facts and compact shared cards
+# Complete product facts and compact shared cards
+
+Current screen density is 80% site-wide: the shared design dimensions below render as 208 x 320px on desktop and 132 x 320px at a 390px viewport. See [UI_DENSITY.md](UI_DENSITY.md).
 
 The storefront now reads optional `Product.details` JSON through the shared `productDetailsSchema`. Fastify owns the data and admin mutations. Fields are subtitle, material, positive weight in grams, size and up to twelve named six-digit-hex colour swatches. Ratings and bestseller claims are not accepted in this field. Existing API consumers may omit details; existing products retain null until edited. Missing facts stay hidden.
 

@@ -1,0 +1,17 @@
+/* One site-wide density setting: retain shared proportions and responsive layouts. */
+:root {
+  --ui-scale: 1;
+  --ui-viewport-height: 100dvh;
+}
+
+@supports (zoom: 0.8) {
+  @media screen {
+    :root {
+      --ui-scale: 0.8;
+      --ui-viewport-height: calc(100dvh / var(--ui-scale));
+    }
+    body {
+      zoom: var(--ui-scale);
+    }
+  }
+}

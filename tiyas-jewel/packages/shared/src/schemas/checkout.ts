@@ -158,6 +158,8 @@ export const checkoutQuoteSchema = z.object({
 export const orderViewSchema = z.object({
   data: totalsSchema.extend({
     orderNumber: z.string(),
+    createdAt: z.iso.datetime().optional(),
+    completedAt: z.iso.datetime().nullable().optional(),
     customer: guestSchema,
     address: addressSchema,
     items: z.array(orderLineSchema),

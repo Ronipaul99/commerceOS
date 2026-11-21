@@ -21,17 +21,19 @@ export function FooterGroup({
   );
   const navigation = (
     <nav aria-label={title}>
-      {links.map(([label, href]) => (
-        <Link key={href} href={href!}>
-          {label}
-        </Link>
-      ))}
+      <ul className="footer-links">
+        {links.map(([label, href]) => (
+          <li key={href}>
+            <Link href={href!}>{label}</Link>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
   if (desktop)
     return (
       <div className="footer-group">
-        <h3 className="footer-group-title">{title}</h3>
+        <h2 className="footer-group-title">{title}</h2>
         {navigation}
       </div>
     );

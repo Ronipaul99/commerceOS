@@ -221,6 +221,8 @@ export function checkoutService(
   function view(order: RecordOrder): OrderView {
     return {
       orderNumber: order.orderNumber,
+      createdAt: order.createdAt.toISOString(),
+      completedAt: order.completedAt?.toISOString() ?? null,
       customer: {
         fullName: order.customerName,
         email: order.customerEmail,

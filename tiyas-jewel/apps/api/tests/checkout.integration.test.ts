@@ -259,7 +259,15 @@ describe("Transactional guest checkout", () => {
       where: { id: p.id },
       data: { name: "Changed", pricePaise: 1 },
     });
-    expect((await confirm(v.confirmationToken)).items[0]).toMatchObject({
+    const confirmed = await confirm(v.confirmationToken);
+    const [clock] = await app.db.$queryRaw<
+      { timezone: string; epoch: string }[]
+    >`SELECT current_setting('TimeZone') AS timezone, (EXTRACT(EPOCH FROM "createdAt") * 1000)::text AS epoch FROM "Order" WHERE "orderNumber" = ${order.orderNumber}`;
+    if (!clock) throw new Error("Persisted order timestamp was not found");
+    expect(clock.timezone).toBe("UTC");
+    expect(Date.parse(confirmed.createdAt!)).toBe(Number(clock.epoch));
+    expect(confirmed.completedAt).toBeNull();
+    expect(confirmed.items[0]).toMatchObject({
       name: "Checkout test piece",
       unitPricePaise: 100001,
     });

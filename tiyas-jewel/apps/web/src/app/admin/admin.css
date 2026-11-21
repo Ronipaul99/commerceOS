@@ -5,7 +5,7 @@
   --admin-muted: #72645e;
   color: #30201d;
   background: #faf6f2;
-  min-height: 100vh;
+  min-height: var(--ui-viewport-height, 100dvh);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -64,7 +64,7 @@
 .admin-shell {
   display: grid;
   grid-template-columns: 228px minmax(0, 1fr);
-  min-height: 100vh;
+  min-height: var(--ui-viewport-height, 100dvh);
 }
 .admin-sidebar {
   background: var(--admin-wine);
@@ -74,7 +74,7 @@
   flex-direction: column;
   position: sticky;
   top: 0;
-  height: 100dvh;
+  height: var(--ui-viewport-height, 100dvh);
   min-width: 0;
 }
 .admin-brand {
@@ -719,7 +719,7 @@
 .admin-login {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 100dvh;
+  min-height: var(--ui-viewport-height, 100dvh);
 }
 .admin-login-panel {
   padding: 70px max(40px, 10vw);

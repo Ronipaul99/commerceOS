@@ -130,9 +130,9 @@ test("updates selected SKU, image, price and stock then persists the variant car
   await expect(bag.locator(".cart-summary strong")).toContainText("6,900.00");
   await bag.getByRole("link", { name: "View your bag" }).click();
   await expect(page).toHaveURL(/\/cart$/);
-  await expect(page.locator(".cart-summary strong")).toContainText("6,900.00");
+  await expect(page.locator(".bag-total dd")).toContainText("6,900.00");
   await page.reload();
-  await expect(page.locator(".cart-summary strong")).toContainText("6,900.00");
+  await expect(page.locator(".bag-total dd")).toContainText("6,900.00");
   const stored = await page.evaluate(
     (key) => JSON.parse(localStorage.getItem(key)!),
     storageKey,
@@ -147,7 +147,7 @@ test("updates selected SKU, image, price and stock then persists the variant car
   await page
     .getByRole("button", { name: /Increase quantity for sculpted band ring/i })
     .click();
-  await expect(page.locator(".cart-summary strong")).toContainText("10,350.00");
+  await expect(page.locator(".bag-total dd")).toContainText("10,350.00");
   await page
     .getByRole("button", { name: "Remove Sculpted Band Ring from bag" })
     .click();
@@ -311,7 +311,7 @@ test("ignores forged local prices and preserves selections when the API is unava
 }) => {
   await addSimple(page);
   await page.goto("/cart");
-  await expect(page.locator(".cart-summary strong")).toContainText("1,290.00");
+  await expect(page.locator(".bag-total dd")).toContainText("1,290.00");
   await page.evaluate((key) => {
     const value = JSON.parse(localStorage.getItem(key)!);
     value.cart[0].pricePaise = 1;
@@ -319,7 +319,7 @@ test("ignores forged local prices and preserves selections when the API is unava
     localStorage.setItem(key, JSON.stringify(value));
   }, storageKey);
   await page.reload();
-  await expect(page.locator(".cart-summary strong")).toContainText("2,580.00");
+  await expect(page.locator(".bag-total dd")).toContainText("2,580.00");
   await page.route("**/api/v1/cart/resolve", (route) =>
     route.fulfill({
       status: 503,
@@ -344,7 +344,7 @@ test("ignores forged local prices and preserves selections when the API is unava
   ).toBe(1);
   await page.unroute("**/api/v1/cart/resolve");
   await page.getByRole("button", { name: "Try again", exact: true }).click();
-  await expect(page.locator(".cart-summary strong")).toContainText("2,580.00");
+  await expect(page.locator(".bag-total dd")).toContainText("2,580.00");
 });
 test("handles removed and unavailable saved cart selections without totals from storage", async ({
   page,
@@ -380,7 +380,11 @@ test("handles removed and unavailable saved cart selections without totals from 
   );
   await page.goto("/cart");
   await expect(page.locator(".cart-line")).toHaveCount(2);
-  await expect(page.locator(".cart-summary strong")).toContainText("0.00");
+  await expect(
+    page
+      .getByRole("complementary", { name: "Bag order summary" })
+      .locator(".bag-total dd"),
+  ).toContainText("0.00");
   await expect(page.getByText("This piece is no longer listed")).toBeVisible();
   await expect(
     page

@@ -123,7 +123,9 @@ export function ProductCard({
   const activeImage =
     images[Math.min(imageIndex, images.length - 1)] ?? images[0];
   const variants = product.raw?.variants ?? [];
+  const hasFullDetails = Boolean(facts.colors.length || facts.size);
   const showVariantChips =
+    !hasFullDetails &&
     variants.length > 0 &&
     !variants.every((variant) =>
       facts.colors.some((color) => color.variantId === variant.id),
@@ -235,7 +237,7 @@ export function ProductCard({
       </div>
     );
   }
-  function attributes() {
+  function attributes(inDialog = false) {
     const rich = Boolean(facts.colors.length || facts.size);
     if (
       !facts.material &&
@@ -247,28 +249,31 @@ export function ProductCard({
     const material = facts.material ? (
       <div className="tj-pc-fact">
         <Layers aria-hidden="true" />
-        <div>
+        <dl>
           <dt>Material</dt>
-          <dd>{facts.material}</dd>
-        </div>
+          <dd title={facts.material}>{facts.material}</dd>
+        </dl>
       </div>
     ) : null;
     const weight = facts.weightGrams ? (
       <div className="tj-pc-fact">
         <Leaf aria-hidden="true" />
-        <div>
+        <dl>
           <dt>Weight</dt>
           <dd>&#8776; {facts.weightGrams} g</dd>
-        </div>
+        </dl>
       </div>
     ) : null;
     const colors = facts.colors.length ? (
       <div className="tj-pc-fact">
         <Palette aria-hidden="true" />
-        <div>
+        <dl>
           <dt>Colours available</dt>
           <dd className="tj-pc-colors">
-            {facts.colors.map((color) => {
+            {(inDialog
+              ? facts.colors
+              : facts.colors.slice(0, facts.colors.length > 4 ? 3 : 4)
+            ).map((color) => {
               const option = variants.find(
                 (item) => item.id === color.variantId,
               );
@@ -301,8 +306,19 @@ export function ProductCard({
                 />
               );
             })}
+            {!inDialog && facts.colors.length > 4 && (
+              <button
+                type="button"
+                className="tj-pc-more-colors"
+                aria-label={`View all ${facts.colors.length} colours of ${product.name}`}
+                aria-haspopup="dialog"
+                onClick={() => setQuickView(true)}
+              >
+                +{facts.colors.length - 3}
+              </button>
+            )}
           </dd>
-        </div>
+        </dl>
       </div>
     ) : null;
     const size = facts.size ? (
@@ -312,18 +328,18 @@ export function ProductCard({
         ) : (
           <Ruler aria-hidden="true" />
         )}
-        <div>
+        <dl>
           <dt>
             {product.raw?.category.slug === "necklaces"
               ? "Necklace size"
               : "Size"}
           </dt>
-          <dd>{facts.size}</dd>
-        </div>
+          <dd title={facts.size}>{facts.size}</dd>
+        </dl>
       </div>
     ) : null;
     return (
-      <dl
+      <div
         className={
           "tj-pc-attributes " +
           (rich ? "tj-pc-attributes-full" : "tj-pc-attributes-essential")
@@ -341,7 +357,7 @@ export function ProductCard({
             {size}
           </div>
         )}
-      </dl>
+      </div>
     );
   }
   function price(inDialog = false) {
@@ -404,7 +420,7 @@ export function ProductCard({
     <article
       className={`product-card tj-product-card ${variant === "default" ? "" : `product-card-${variant}`} ${added ? "just-added" : ""}`}
       data-context={variant}
-      data-details={facts.colors.length || facts.size ? "full" : "essential"}
+      data-details={hasFullDetails ? "full" : "essential"}
     >
       <div className="tj-pc-frame">
         {media()}
@@ -492,7 +508,7 @@ export function ProductCard({
               <h3>{product.name}</h3>
               {price(true)}
               <p>{facts.subtitle ?? product.raw?.description}</p>
-              {attributes()}
+              {attributes(true)}
               {variants.length > 0 && (
                 <div className="tj-pc-variant-field">
                   <label htmlFor={selectId}>Size or option</label>

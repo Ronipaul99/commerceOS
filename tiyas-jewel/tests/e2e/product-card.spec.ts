@@ -14,9 +14,9 @@ test("shared cards support image controls, quick view, size availability and ver
   });
   await expect(card).toBeVisible();
   const dimensions = await card.boundingBox();
-  expect(Math.round(dimensions!.height)).toBe(400);
+  expect(Math.round(dimensions!.height)).toBe(320);
   expect(Math.round(dimensions!.width)).toBe(
-    info.project.name === "mobile" ? 165 : 260,
+    info.project.name === "mobile" ? 132 : 208,
   );
   await expect(card.locator(".tj-pc-attributes")).toHaveCount(0);
   await expect(card).not.toContainText("Not specified");

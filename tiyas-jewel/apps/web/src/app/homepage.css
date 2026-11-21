@@ -233,7 +233,7 @@ html {
   position: relative;
   background: var(--wine);
   color: var(--warm-ivory);
-  height: 510px;
+  height: 612px;
   touch-action: pan-y pinch-zoom;
 }
 .tj-hero-slide {
@@ -321,6 +321,7 @@ html {
 }
 .tj-hero-dots {
   position: absolute;
+  z-index: 2;
   bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
@@ -346,6 +347,18 @@ html {
 }
 .tj-hero-dots button[aria-pressed="true"] span {
   background: var(--warm-ivory);
+}
+.tj-hero-dots .tj-hero-autoplay {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(255 249 244 / 0.55);
+  border-radius: 50%;
+  background: rgb(63 11 27 / 0.4);
+  color: var(--warm-ivory);
 }
 @keyframes tj-copy-enter {
   from {
@@ -1087,6 +1100,12 @@ html {
   text-align: center;
 }
 .site-footer.tj-footer {
+  --footer-type-scale: 1.2;
+  --footer-copy-size: calc(12px * var(--footer-type-scale));
+  --footer-link-size: calc(12px * var(--footer-type-scale));
+  --footer-heading-size: calc(13px * var(--footer-type-scale));
+  --footer-caption-size: calc(10px * var(--footer-type-scale));
+  font-size: calc(var(--text-base) * var(--footer-type-scale));
   padding-block: 0;
   background: var(--wine);
   color: var(--warm-ivory);
@@ -1108,7 +1127,7 @@ html {
 }
 .tj-footer-identity > p {
   color: #e8cec4;
-  font-size: 12px;
+  font-size: var(--footer-copy-size);
   line-height: 1.6;
   margin-top: 18px;
 }
@@ -1126,7 +1145,7 @@ html {
 .tj-footer .footer-group summary {
   min-height: 52px;
   color: var(--warm-ivory);
-  font-size: 13px;
+  font-size: var(--footer-heading-size);
 }
 .tj-footer .footer-group nav {
   display: flex;
@@ -1136,7 +1155,7 @@ html {
 }
 .tj-footer .footer-group nav a {
   color: #e8cec4;
-  font-size: 12px;
+  font-size: var(--footer-link-size);
   min-height: 34px;
   display: flex;
   align-items: center;
@@ -1146,10 +1165,17 @@ html {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.tj-footer .footer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
 .tj-footer .footer-group-title {
   color: var(--warm-ivory);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: var(--footer-heading-size);
   font-weight: 500;
   margin: 0 0 14px;
 }
@@ -1169,7 +1195,7 @@ html {
   gap: 10px 20px;
   justify-content: space-between;
   color: #e8cec4;
-  font-size: 10px;
+  font-size: var(--footer-caption-size);
 }
 .tj-preview-note {
   padding: 14px 18px;
@@ -1251,7 +1277,7 @@ html {
     width: 42px;
   }
   .tj-hero {
-    height: 540px;
+    height: 648px;
   }
   .tj-occasion-card {
     min-height: 194px;
@@ -1292,7 +1318,7 @@ html {
     border-left: 1px solid rgb(255 249 244 / 0.25);
   }
   .tj-hero {
-    height: 355px;
+    height: 426px;
   }
   .tj-hero-inner {
     align-items: center;
@@ -1550,7 +1576,7 @@ html {
     gap: 20px;
   }
   .tj-footer .footer-group nav a {
-    font-size: 11px;
+    --footer-link-size: calc(11px * var(--footer-type-scale));
   }
   .tj-footer-identity .tj-brand-identity > span {
     font-size: 23px;
@@ -1639,7 +1665,7 @@ html {
     text-underline-offset: 6px;
   }
   .tj-hero {
-    height: 390px;
+    height: 468px;
   }
   .tj-hero-copy h1,
   .tj-hero-copy h2 {
@@ -1816,7 +1842,7 @@ html {
     padding-inline: 50px;
   }
   .tj-hero {
-    height: 430px;
+    height: 516px;
   }
   .tj-hero-copy h1,
   .tj-hero-copy h2 {

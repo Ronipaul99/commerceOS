@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import pg from "pg";
 import { randomUUID } from "node:crypto";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 const fixtureEmails = new WeakMap<Page, string>();
 test.beforeEach(async ({ page }) => {
   fixtureEmails.set(page, `checkout-e2e-${randomUUID()}@example.test`);
@@ -105,7 +105,16 @@ async function capture(page: Page, path: string) {
     (document.activeElement as HTMLElement | null)?.blur();
     window.scrollTo({ top: 0, behavior: "instant" });
   });
-  await page.screenshot({ path, fullPage: true, scale: "css" });
+  const bounds = await page.evaluate(() => ({
+    width: innerWidth,
+    height: document.documentElement.scrollHeight,
+  }));
+  await page.screenshot({
+    path,
+    fullPage: true,
+    scale: "css",
+    clip: { x: 0, y: 0, ...bounds },
+  });
 }
 test("guest checkout validates details, simulates verified development payment and keeps private confirmation", async ({
   page,
@@ -142,10 +151,18 @@ test("guest checkout validates details, simulates verified development payment a
     .getByRole("button", { name: "Simulate successful payment" })
     .click();
   await expect(
-    page.getByRole("heading", { name: "A lovely choice." }),
+    page.getByRole("heading", { name: "Order Confirmed!" }),
   ).toBeVisible();
+  await expect(page.locator(".order-payment-badge")).toHaveText("Paid");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download order receipt" }).click();
+  const download = await downloadPromise;
+  const receipt = await readFile((await download.path())!, "utf8");
+  expect(receipt).toContain("Not a tax invoice");
+  expect(receipt).not.toContain(new URL(page.url()).hash.slice(1));
+  await page.getByRole("button", { name: "Refresh order status" }).click();
   await expect(
-    page.getByRole("heading", { name: "PAID", exact: true }),
+    page.getByRole("heading", { name: "Order Confirmed!" }),
   ).toBeVisible();
   await capture(
     page,
@@ -154,7 +171,7 @@ test("guest checkout validates details, simulates verified development payment a
   const privateUrl = page.url();
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "A lovely choice." }),
+    page.getByRole("heading", { name: "Order Confirmed!" }),
   ).toBeVisible();
   await page.goto("/cart");
   await expect(
@@ -162,7 +179,7 @@ test("guest checkout validates details, simulates verified development payment a
   ).toBeVisible();
   await page.goto(privateUrl);
   await expect(
-    page.getByRole("heading", { name: "A lovely choice." }),
+    page.getByRole("heading", { name: "Order Confirmed!" }),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -176,16 +193,16 @@ test("places COD with a persisted address and accurate backend totals", async ({
     .getByRole("button", { name: "Place cash on delivery order" })
     .click();
   await expect(
-    page.getByRole("heading", { name: "A lovely choice." }),
+    page.getByRole("heading", { name: "Order Confirmed!" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "COD PENDING" }),
-  ).toBeVisible();
+  await expect(page.locator(".order-payment-badge")).toHaveText(
+    "Pay on delivery",
+  );
   await expect(page.locator(".confirmation-address")).toContainText(
     "12 Sample Garden Road",
   );
   await expect(
-    page.getByRole("complementary", { name: "Order summary" }),
+    page.getByRole("region", { name: "Order summary" }),
   ).toContainText("1,389.00");
   await page.reload();
   await expect(page.locator(".confirmation-address")).toContainText(
@@ -194,7 +211,7 @@ test("places COD with a persisted address and accurate backend totals", async ({
 });
 test("handles a failed development payment and rejects invalid private links", async ({
   page,
-}) => {
+}, info) => {
   await bag(page);
   await details(page);
   await page
@@ -205,10 +222,60 @@ test("handles a failed development payment and rejects invalid private links", a
   ).toBeVisible();
   await page.getByRole("button", { name: "Simulate failed payment" }).click();
   await expect(
-    page.getByRole("heading", { name: "Payment was not completed." }),
+    page.getByRole("heading", { name: "Payment Failed" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Start a new checkout" }).click();
-  await expect(page).toHaveURL(/\/checkout$/);
+  await expect(page).toHaveURL(/\/payment-failed#[a-f0-9]{64}$/);
+  const failedUrl = page.url();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Payment Failed" }),
+  ).toBeVisible();
+  await capture(
+    page,
+    `output/playwright/payment-failed-${info.project.name}.png`,
+  );
+  await page
+    .getByRole("button", { name: "Check payment status", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Payment is still not completed" }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/payment-failed#[a-f0-9]{64}$/);
+  await page
+    .getByRole("button", { name: "Choose another payment method" })
+    .click();
+  await expect(page).toHaveURL(/\/checkout#retry=[a-f0-9]{64}&method=choose$/);
+  await expect(page.getByLabel("Full name", { exact: true })).toHaveValue(
+    "Aarohi Sample",
+  );
+  await expect(page.getByLabel("Address line 1", { exact: true })).toHaveValue(
+    "12 Sample Garden Road",
+  );
+  await expect(
+    page.getByRole("radio", { name: "Online payment" }),
+  ).toBeFocused();
+  await page.goto(failedUrl);
+  await page
+    .getByRole("button", { name: "Retry Payment", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/checkout#retry=[a-f0-9]{64}$/);
+  await expect(page.getByLabel("Email address", { exact: true })).toHaveValue(
+    fixtureEmails.get(page)!,
+  );
+  await expect(
+    page.getByRole("button", { name: "Continue to payment", exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByRole("button", { name: "Continue to payment", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Simulate successful payment" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Order Confirmed!" }),
+  ).toBeVisible();
   await page.goto("/order-confirmation#invalid");
   await expect(page.locator("main").getByRole("alert")).toContainText(
     "missing or invalid",

@@ -448,11 +448,15 @@
 }
 .detail-add {
   flex: 1;
+  background: var(--accent);
   min-height: 48px;
   margin: 0;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.07em;
+}
+.detail-add:hover:not(:disabled) {
+  background: var(--wine);
 }
 .detail-add:disabled {
   opacity: 0.55;

@@ -7,7 +7,7 @@ import { BrandIdentity } from "./brand-mark";
 function Wordmark() {
   return (
     <Link href="/" className="tj-wordmark" aria-label="Tiyas Jewel home">
-      <BrandIdentity />
+      <BrandIdentity priority />
     </Link>
   );
 }
@@ -20,8 +20,9 @@ function HeaderActions({ mobile = false }: { mobile?: boolean }) {
           className="icon-button"
           onClick={() => setPanel("search")}
           aria-label="Open search"
+          aria-haspopup="dialog"
         >
-          <Search size={20} strokeWidth={1.5} />
+          <Search size={20} strokeWidth={1.5} aria-hidden="true" />
         </button>
       )}
       <Link
@@ -29,7 +30,7 @@ function HeaderActions({ mobile = false }: { mobile?: boolean }) {
         href="/wishlist"
         aria-label={`Open wishlist, ${saved.length} saved items`}
       >
-        <Heart size={21} strokeWidth={1.4} />
+        <Heart size={21} strokeWidth={1.4} aria-hidden="true" />
         {saved.length > 0 && <span className="count">{saved.length}</span>}
       </Link>
       <CartButton />
@@ -84,8 +85,9 @@ export function MobileHeader() {
         className="icon-button"
         onClick={() => setPanel("menu")}
         aria-label="Open menu"
+        aria-haspopup="dialog"
       >
-        <Menu size={21} />
+        <Menu size={21} aria-hidden="true" />
       </button>
       <Wordmark />
       <HeaderActions mobile />
