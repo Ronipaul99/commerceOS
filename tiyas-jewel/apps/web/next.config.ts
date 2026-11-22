@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 import { config as loadEnv } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,7 +42,22 @@ if (!parsed.success)
     "API_INTERNAL_URL must be an HTTP(S) origin without credentials, path, query or fragment",
   );
 const upstream = parsed.data.replace(/\/$/, "");
+const sitePublicUrl =
+  process.env.SITE_PUBLIC_URL ?? fileEnv?.SITE_PUBLIC_URL ?? "";
+if (sitePublicUrl) {
+  const site = z.url().safeParse(sitePublicUrl);
+  if (
+    !site.success ||
+    new URL(sitePublicUrl).protocol !== "https:" ||
+    new URL(sitePublicUrl).origin !== sitePublicUrl ||
+    new URL(sitePublicUrl).hostname.endsWith(".example")
+  )
+    throw new Error(
+      "SITE_PUBLIC_URL must be an actual HTTPS origin without path or trailing slash",
+    );
+}
 const nextConfig: NextConfig = {
+  env: { SITE_PUBLIC_URL: sitePublicUrl },
   // Keep review builds separate from an owner's running development preview.
   distDir: process.env.UI_REVIEW_BUILD === "true" ? ".next-ui-review" : ".next",
   // Container builds launch the generated server; host builds use next start.
@@ -53,6 +69,7 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       { source: "/api/:path*", destination: `${upstream}/api/:path*` },
+      { source: "/media/public/:path*", destination: `${upstream}/media/public/:path*` },
       {
         source: "/images/uploads/:path*",
         destination: `${upstream}/images/uploads/:path*`,
@@ -72,4 +89,15 @@ const nextConfig: NextConfig = {
     ];
   },
 };
-export default nextConfig;
+export default function config(phase: string): NextConfig {
+  // Match Next's browser fallback during dev reloads. Keep the production
+  // optimizer widths, which are compiled with the production client bundle.
+  if (phase === PHASE_DEVELOPMENT_SERVER) return nextConfig;
+  return {
+    ...nextConfig,
+    images: {
+      deviceSizes: [320, 480, 640, 960, 1440, 1920, 2400],
+      imageSizes: [160],
+    },
+  };
+}

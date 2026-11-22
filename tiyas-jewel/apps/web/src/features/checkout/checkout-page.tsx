@@ -44,6 +44,22 @@ export function CheckoutPage() {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [method, setMethod] = useState<"ONLINE" | "COD">("ONLINE");
+  const [couponDraft, setCouponDraft] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [couponsEnabled, setCouponsEnabled] = useState(false);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/v1/experience/settings", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((r) => {
+        if (active) setCouponsEnabled(r?.data?.coupons === true);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   const [resolved, setResolved] = useState<{
     key: string;
     data?: CheckoutQuote;
@@ -61,7 +77,13 @@ export function CheckoutPage() {
     restore.current = restoreCartItems;
   }, [restoreCartItems]);
   const attempt = useRef<ReturnType<typeof newCheckoutAttempt> | null>(null);
-  const key = JSON.stringify({ cartRefs, pin });
+  const key = JSON.stringify({
+    cartRefs,
+    pin,
+    couponCode,
+    email: couponCode ? customerEmail : "",
+    method: couponCode ? method : "",
+  });
   const quote = resolved?.key === key ? resolved.data : undefined;
   useEffect(() => {
     if (!hydrated) return;
@@ -113,8 +135,22 @@ export function CheckoutPage() {
         sessionStorage.removeItem(pendingCheckoutKey);
       setPendingToken("");
       setRecoveryOrder(data);
+      setCustomerEmail(data.customer.email);
       setPin(data.address.pinCode);
       setMethod("ONLINE");
+      if (data.couponCode) {
+        const reusable = await fetch("/api/v1/experience/settings", {
+          cache: "no-store",
+          signal: AbortSignal.timeout(5000),
+        })
+          .then((r) => r.json())
+          .then((r) => r?.data?.coupons === true)
+          .catch(() => false);
+        if (active && reusable) {
+          setCouponCode(data.couponCode);
+          setCouponDraft(data.couponCode);
+        }
+      }
     })()
       .catch((error) => {
         if (active)
@@ -154,21 +190,33 @@ export function CheckoutPage() {
     if (!hydrated || !cartRefs.length || !pinCodeSchema.safeParse(pin).success)
       return;
     const abort = new AbortController();
-    checkoutApi
-      .quote(cartRefs, pin, abort.signal)
-      .then((response) => setResolved({ key, data: response.data }))
-      .catch((e) => {
-        if (!abort.signal.aborted)
-          setResolved({
-            key,
-            error:
-              e instanceof Error
-                ? e.message
-                : "Delivery and totals could not be checked.",
-          });
-      });
-    return () => abort.abort();
-  }, [cartRefs, pin, key, hydrated]);
+    const timer = setTimeout(() => {
+      void checkoutApi
+        .quote(cartRefs, pin, abort.signal, {
+          ...(couponCode
+            ? { couponCode, customerEmail: customerEmail || undefined }
+            : {}),
+          paymentMethod: method,
+        })
+        .then((response) => {
+          if (!abort.signal.aborted) setResolved({ key, data: response.data });
+        })
+        .catch((e) => {
+          if (!abort.signal.aborted)
+            setResolved({
+              key,
+              error:
+                e instanceof Error
+                  ? e.message
+                  : "Delivery and totals could not be checked.",
+            });
+        });
+    }, 250);
+    return () => {
+      clearTimeout(timer);
+      abort.abort();
+    };
+  }, [cartRefs, pin, key, hydrated, couponCode, customerEmail, method]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -200,6 +248,7 @@ export function CheckoutPage() {
         country: "IN",
       },
       paymentMethod: method,
+      ...(couponCode ? { couponCode } : {}),
       expectedTotalPaise: quote.totalPaise,
       quoteFingerprint: quote.fingerprint,
       idempotencyKey: pending.idempotencyKey,
@@ -232,8 +281,21 @@ export function CheckoutPage() {
           : "Your checkout could not be completed. Retry safely with the same details.",
       );
       if (e instanceof CheckoutClientError && e.code === "QUOTE_CHANGED") {
-        const fresh = await checkoutApi.quote(cartRefs, pin).catch(() => null);
+        const fresh = await checkoutApi
+          .quote(cartRefs, pin, undefined, {
+            ...(couponCode
+              ? { couponCode, customerEmail: customerEmail || undefined }
+              : {}),
+            paymentMethod: method,
+          })
+          .catch(() => null);
         if (fresh) setResolved({ key, data: fresh.data });
+        else
+          setResolved({
+            key,
+            error:
+              "Your total could not be refreshed. Remove an unavailable coupon or review your bag.",
+          });
         attempt.current = null;
         sessionStorage.removeItem(pendingCheckoutKey);
       }
@@ -395,6 +457,8 @@ export function CheckoutPage() {
               ))
                 return;
               const name = target.name;
+              if (name === "email")
+                setCustomerEmail(target.value.trim().toLowerCase());
               const path = `${["fullName", "email", "mobile"].includes(name) ? "customer" : "address"}.${name}`;
               setIssues((current) => {
                 const next = { ...current };
@@ -437,7 +501,7 @@ export function CheckoutPage() {
                     type: "tel",
                     inputMode: "tel",
                     path: "customer.mobile",
-                    maxLength: 14,
+                    maxLength: 24,
                   })}
                 </div>
                 <div className="checkout-address-divider">
@@ -668,6 +732,58 @@ export function CheckoutPage() {
             )}
           </form>
           <div className="checkout-order-column">
+            {couponsEnabled && (
+              <div className="experience-coupon">
+                <label htmlFor="checkout-coupon">Coupon code</label>
+                <div>
+                  <input
+                    id="checkout-coupon"
+                    value={couponDraft}
+                    maxLength={32}
+                    onChange={(e) => setCouponDraft(e.target.value)}
+                    placeholder="Enter your code"
+                    disabled={busy}
+                  />
+                  <button
+                    type="button"
+                    className="experience-primary"
+                    disabled={busy || !couponDraft.trim()}
+                    onClick={() => {
+                      setCouponCode(couponDraft.trim().toUpperCase());
+                      attempt.current = null;
+                    }}
+                  >
+                    Apply
+                  </button>
+                </div>
+                {couponCode && (
+                  <p>
+                    <span role="status">
+                      {quote?.couponCode
+                        ? `Applied: ${quote?.couponCode}`
+                        : resolved?.key === key && resolved.error
+                          ? "Coupon could not be applied"
+                          : "Checking coupon…"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCouponCode("");
+                        setCouponDraft("");
+                        attempt.current = null;
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </p>
+                )}
+                {resolved?.key === key && resolved.error && (
+                  <p role="alert" className="experience-error">
+                    {resolved.error}
+                  </p>
+                )}
+              </div>
+            )}
             {quote ? (
               <OrderSummary order={quote} purchaseLayout>
                 {submitAction}

@@ -17,6 +17,7 @@ import {
 } from "../../integrations/payments.js";
 import { CheckoutError } from "./errors.js";
 import { calculateTotals, hash, quoteFingerprint } from "./pricing.js";
+import { resolveCoupon, couponIdentity } from "../coupons/service.js";
 type Tx = Prisma.TransactionClient;
 const include = {
   items: { orderBy: { position: "asc" as const } },
@@ -91,7 +92,17 @@ export function checkoutService(
       };
     });
   }
-  function makeQuote(items: OrderLine[], pinCode: string) {
+  async function makeQuote(
+    tx: Tx,
+    items: OrderLine[],
+    pinCode: string,
+    context: {
+      couponCode?: string;
+      email?: string;
+      paymentMethod?: "ONLINE" | "COD";
+    } = {},
+    lock = false,
+  ) {
     if (
       config.SERVICEABLE_PIN_CODES.length &&
       !config.SERVICEABLE_PIN_CODES.includes(pinCode)
@@ -101,24 +112,87 @@ export function checkoutService(
         "Delivery is not available to this PIN code yet.",
         422,
       );
+    if (context.couponCode && !config.COUPONS_ENABLED)
+      throw new CheckoutError(
+        "COUPONS_DISABLED",
+        "Coupons are not available yet.",
+        422,
+      );
+    const promotion = await resolveCoupon(
+      tx,
+      context.couponCode,
+      items,
+      {
+        email: context.email,
+        paymentMethod: context.paymentMethod ?? "ONLINE",
+      },
+      lock,
+    );
     const totals = calculateTotals(
       items.reduce((n, i) => n + i.lineTotalPaise, 0),
       config,
+      promotion?.discount ?? 0,
     );
+    if (promotion && totals.totalPaise < 100)
+      throw new CheckoutError(
+        "COUPON_TOTAL",
+        "This coupon makes the payable amount below the supported minimum of INR 1.",
+        422,
+      );
+    const pricedItems = promotion
+      ? items.map((i, n) => ({ ...i, discountPaise: promotion.allocations[n] }))
+      : items;
+    const fingerprintTotals = {
+      ...totals,
+      ...(promotion
+        ? {
+            couponCode: promotion.coupon.code,
+            couponVersion: promotion.coupon.version,
+            paymentMethod: context.paymentMethod ?? "ONLINE",
+            emailKey:
+              promotion.coupon.perCustomerLimit && context.email
+                ? couponIdentity(context.email)
+                : null,
+          }
+        : {}),
+    };
     return {
       ...totals,
-      items,
-      fingerprint: quoteFingerprint(items, pinCode, totals, config),
+      items: pricedItems,
+      couponCode: promotion?.coupon.code ?? null,
+      promotion,
+      fingerprint: quoteFingerprint(
+        pricedItems,
+        pinCode,
+        fingerprintTotals,
+        config,
+      ),
       codEnabled: config.COD_ENABLED,
       paymentAdapter: config.PAYMENT_ADAPTER,
       freeShippingThresholdPaise: config.FREE_SHIPPING_THRESHOLD_PAISE,
       reservationMinutes: config.RESERVATION_MINUTES,
     };
   }
-  async function quote(refs: CartItemRef[], pinCode: string) {
+  async function quote(
+    refs: CartItemRef[],
+    pinCode: string,
+    context: {
+      couponCode?: string;
+      email?: string;
+      paymentMethod?: "ONLINE" | "COD";
+    } = {},
+  ) {
     await expireReservations();
     return db.$transaction(
-      async (tx) => makeQuote(await lines(tx, refs), pinCode),
+      async (tx) => {
+        const { promotion: _, ...q } = await makeQuote(
+          tx,
+          await lines(tx, refs),
+          pinCode,
+          context,
+        );
+        return q;
+      },
       { isolationLevel: "RepeatableRead" },
     );
   }
@@ -153,6 +227,10 @@ export function checkoutService(
   }
   async function release(tx: Tx, order: RecordOrder) {
     if (order.reservationState !== "HELD") return;
+    await tx.couponRedemption.updateMany({
+      where: { orderId: order.id, state: "RESERVED" },
+      data: { state: "RELEASED", expiresAt: null },
+    });
     for (const i of [...order.items].sort((a, b) =>
       (a.variantId ?? a.productId).localeCompare(b.variantId ?? b.productId),
     )) {
@@ -242,6 +320,7 @@ export function checkoutService(
           quantity,
           unitPricePaise,
           lineTotalPaise,
+          discountPaise,
         }) => ({
           productId,
           variantId,
@@ -254,12 +333,14 @@ export function checkoutService(
           quantity,
           unitPricePaise,
           lineTotalPaise,
+          discountPaise,
         }),
       ),
       subtotalPaise: order.subtotalPaise,
       shippingPaise: order.shippingPaise,
       taxPaise: order.taxPaise,
-      discountPaise: 0,
+      discountPaise: order.discountPaise,
+      couponCode: order.couponCode,
       totalPaise: order.totalPaise,
       currency: "INR",
       taxBps: order.taxBps,
@@ -325,7 +406,17 @@ export function checkoutService(
               return existing;
             }
             const items = await lines(tx, input.items, true);
-            const q = makeQuote(items, input.pinCode);
+            const q = await makeQuote(
+              tx,
+              items,
+              input.pinCode,
+              {
+                couponCode: input.couponCode,
+                email: input.customer.email,
+                paymentMethod: input.paymentMethod,
+              },
+              true,
+            );
             if (
               q.fingerprint !== input.quoteFingerprint ||
               q.totalPaise !== input.expectedTotalPaise
@@ -336,7 +427,7 @@ export function checkoutService(
               );
             await decrement(tx, items);
             const cod = input.paymentMethod === "COD";
-            return tx.order.create({
+            const created = await tx.order.create({
               data: {
                 orderNumber: `TJ-${randomUUID().replaceAll("-", "").slice(0, 24).toUpperCase()}`,
                 idempotencyKey: input.idempotencyKey,
@@ -349,6 +440,11 @@ export function checkoutService(
                 subtotalPaise: q.subtotalPaise,
                 shippingPaise: q.shippingPaise,
                 taxPaise: q.taxPaise,
+                discountPaise: q.discountPaise,
+                couponCode: q.couponCode,
+                ...(q.promotion
+                  ? { couponSnapshot: q.promotion.snapshot }
+                  : {}),
                 totalPaise: q.totalPaise,
                 taxBps: q.taxBps,
                 taxMode: q.taxMode,
@@ -361,7 +457,7 @@ export function checkoutService(
                   ? null
                   : new Date(Date.now() + config.RESERVATION_MINUTES * 60000),
                 items: {
-                  create: items.map((i, position) => ({ ...i, position })),
+                  create: q.items.map((i, position) => ({ ...i, position })),
                 },
                 payment: {
                   create: {
@@ -373,6 +469,18 @@ export function checkoutService(
               },
               include,
             });
+            if (q.promotion)
+              await tx.couponRedemption.create({
+                data: {
+                  couponId: q.promotion.coupon.id,
+                  orderId: created.id,
+                  emailKey: couponIdentity(input.customer.email),
+                  state: cod ? "REDEEMED" : "RESERVED",
+                  amountPaise: q.discountPaise,
+                  expiresAt: created.reservationExpiresAt,
+                },
+              });
+            return created;
           },
           { timeout: 15000 },
         );
@@ -488,6 +596,8 @@ export function checkoutService(
         if (order.paymentStatus !== "PAID" && payment?.status === "captured") {
           let accepted = true;
           if (order.reservationState === "RELEASED") {
+            // A released promotion is not silently reacquired after its capacity was reused.
+            if (order.couponCode) accepted = false;
             try {
               await lines(
                 tx,
@@ -505,6 +615,11 @@ export function checkoutService(
             }
             if (accepted) await decrement(tx, order.items);
           }
+          if (accepted)
+            await tx.couponRedemption.updateMany({
+              where: { orderId: id, state: "RESERVED" },
+              data: { state: "REDEEMED", expiresAt: null },
+            });
           await tx.order.update({
             where: { id },
             data: {

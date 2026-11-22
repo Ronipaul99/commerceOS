@@ -436,8 +436,8 @@ describe("Stage 05 product and image management", () => {
     ).toContain("image/webp");
   });
   it("reorders/replaces image associations, uses variant imagery and removes unattached objects", async () => {
-    const p = await create(true),
-      assets = [];
+    const p = await create(true);
+    const assets: { id: string; url: string }[] = [];
     for (const color of ["red", "blue", "green"]) {
       const r = await upload(
         await sharp({
@@ -477,7 +477,16 @@ describe("Stage 05 product and image management", () => {
     expect(
       (await request("DELETE", `/images/${assets[0]!.id}`)).statusCode,
     ).toBe(200);
-    expect(objects.size).toBe(2);
+    expect(
+      [...objects.keys()].filter((k) =>
+        /^products\/[a-f0-9-]{36}\.webp$/.test(k),
+      ),
+    ).toHaveLength(2);
+    expect(
+      [...objects.keys()].some((k) =>
+        k.startsWith(`products/${assets[0]!.id}/`),
+      ),
+    ).toBe(false);
   });
   it("rejects stale variant stock edits and archives/deletes only unused products", async () => {
     const p = await create(true),
@@ -572,7 +581,12 @@ describe("Stage 05 product and image management", () => {
       409,
     );
     expect((await app.inject(asset.url)).statusCode).toBe(200);
-    expect(objects.size).toBe(1);
+    expect(
+      [...objects.keys()].filter((k) =>
+        /^products\/[a-f0-9-]{36}\.webp$/.test(k),
+      ),
+    ).toHaveLength(1);
+    expect(objects.has(`products/${asset.id}.webp`)).toBe(true);
   });
 });
 describe("Stage 05 accepted order views and completion", () => {

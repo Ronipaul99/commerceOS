@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { slugSchema } from "./catalog.js";
 import { contentImagePaths } from "../content-assets.js";
+import { publicMediaManifestSchema } from "./public-media.js";
 
 /** Only storefront paths. No protocols, escapes, admin/API routes or script URLs. */
 export const storefrontHrefSchema = z
@@ -9,7 +10,7 @@ export const storefrontHrefSchema = z
   .max(300)
   .refine(
     (v) =>
-      /^(?:\/(?:shop|collections|products|info|journal)(?:[/?#][a-zA-Z0-9/?=&_#.-]*)?|\/(?:cart|wishlist)?(?:#[a-z0-9-]+)?)$/.test(
+      /^(?:\/(?:shop|collections|products|info|journal)(?:[/?#][a-zA-Z0-9/?=&_#.-]*)?|\/(?:cart|wishlist|happy-customers)?(?:#[a-z0-9-]+)?)$/.test(
         v,
       ) && !v.includes(".."),
     "Use a storefront link such as /collections/silver-replica",
@@ -56,10 +57,13 @@ export const contentSectionKinds = [
   "trust",
   "story",
   "newsletter",
+  "reviews",
+  "reels",
 ] as const;
 export const contentSectionSchema = contentItemSchema
   .extend({
     kind: z.enum(contentSectionKinds),
+    recordIds: z.array(z.string().min(1).max(120)).max(24).default([]),
     items: z.array(contentItemSchema).max(24).default([]),
   })
   .strict();
@@ -182,6 +186,7 @@ export const contentDocumentsResponseSchema = z.object({
 });
 export const publicContentResponseSchema = z.object({
   data: contentValueSchema.nullable(),
+  media: z.record(z.string().regex(/^\/images\/uploads\/[a-f0-9-]{36}\.webp$/), publicMediaManifestSchema).optional(),
 });
 export type ContentValue = z.infer<typeof contentValueSchema>;
 export type ContentSection = z.infer<typeof contentSectionSchema>;

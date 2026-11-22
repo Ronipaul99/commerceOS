@@ -1,5 +1,6 @@
 import type { DisplayProduct } from "./catalog-presentation";
 import { formatINR } from "./money";
+import type { PublicMediaManifest } from "@tiyas/shared";
 
 export function formatCardPrice(paise: number) {
   return formatINR(paise).replace(/\.00$/, "");
@@ -63,7 +64,7 @@ export function cardSelection(
   };
 }
 
-type CardImage = { id: string; url: string; alt: string; position: number };
+type CardImage = { id: string; url: string; alt: string; position: number; publicMedia?: PublicMediaManifest };
 export function cardImages(
   product: DisplayProduct,
 ): [CardImage, ...CardImage[]] {

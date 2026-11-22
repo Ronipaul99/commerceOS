@@ -2,6 +2,8 @@
 
 ## Boundaries
 
+The customer-experience extension reuses these same boundaries. Fastify now owns review verification/moderation, stories, transactional coupon usage, CMS reels and media renditions; Next.js renders their public/admin screens through shared contracts. See [CUSTOMER_EXPERIENCE.md](CUSTOMER_EXPERIENCE.md) for feature switches, routes, data lifecycle and release requirements. No new service or direct web database access is introduced.
+
 ```text
 Browser - one origin
   |-- / and assets - Next.js App Router (web)

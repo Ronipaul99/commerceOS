@@ -6,7 +6,6 @@ import {
   UserRound,
   ReceiptText,
   Gem,
-  Star,
   Mail,
 } from "lucide-react";
 import {
@@ -18,6 +17,8 @@ import {
 import { LotusMark } from "@/components/storefront/brand-mark";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
+import { HomeReviews } from "@/features/reviews/home-reviews";
+import { HomeReels } from "@/features/reels/home-reels";
 import { HeroCarousel } from "./hero-carousel";
 import { ProductRail } from "./product-rail";
 import {
@@ -113,45 +114,6 @@ function CollectionPromotion() {
           <ArrowRight size={16} />
         </span>
       </Link>
-    </section>
-  );
-}
-function CustomerReviews() {
-  const reviews = homepageConfig.reviews.filter((r) => r.approved);
-  if (!reviews.length) return null;
-  return (
-    <section
-      className="tj-shell tj-home-section tj-reviews"
-      aria-labelledby="reviews-title"
-    >
-      <HomeSectionHeading
-        id="reviews-title"
-        title="Our Customers Love Us"
-        description="Stories from our jewellery community."
-      />
-      <ProductRail label="Customer reviews">
-        {reviews.map((r) => (
-          <figure key={r.id} className="tj-review">
-            {r.rating !== undefined && r.rating >= 1 && r.rating <= 5 && (
-              <div aria-label={`${r.rating} out of 5 stars`}>
-                {Array.from({ length: Math.floor(r.rating) }, (_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    fill="currentColor"
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-            )}
-            <blockquote>{r.text}</blockquote>
-            <figcaption>
-              {r.name}
-              {r.product && <Link href={r.product.href}>{r.product.name}</Link>}
-            </figcaption>
-          </figure>
-        ))}
-      </ProductRail>
     </section>
   );
 }
@@ -402,7 +364,10 @@ export function Homepage() {
           </div>
         </div>
       </section>
-      <CustomerReviews />
+      <Suspense fallback={null}>
+        <HomeReels />
+        <HomeReviews />
+      </Suspense>
       <section
         className="tj-shell tj-newsletter-wrap"
         id="newsletter"

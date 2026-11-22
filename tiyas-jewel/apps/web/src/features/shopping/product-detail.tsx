@@ -11,6 +11,7 @@ import { useStorefront } from "@/components/storefront/storefront-provider";
 import { api } from "@/lib/api-client";
 import { presentProduct } from "@/lib/catalog-presentation";
 import { formatINR } from "@/lib/money";
+import { Reviews, RatingSummary } from "@/features/reviews/reviews";
 function ProductGallery({
   product,
   imageId,
@@ -79,6 +80,7 @@ function ProductGallery({
                     : image.url
                 }
                 alt={image.alt}
+                publicMedia={"publicMedia" in image ? image.publicMedia : undefined}
                 preload={index === initial}
                 sizes="(max-width: 599px) 90vw, 50vw"
               />
@@ -132,6 +134,7 @@ function ProductGallery({
                   : image.url
               }
               alt=""
+              publicMedia={"publicMedia" in image ? image.publicMedia : undefined}
               sizes="72px"
             />
           </button>
@@ -160,6 +163,7 @@ function ProductGallery({
                     : (images[active]?.url ?? presentation.image)
                 }
                 alt={images[active]?.alt ?? product.name}
+                publicMedia={product.images.find((image) => image.id === images[active]?.id)?.publicMedia}
                 sizes="1200px"
               />
             </div>
@@ -220,6 +224,14 @@ export function ProductDetail({
         <div className="product-information">
           <p className="eyebrow">The Tiyas edit / {product.category.name}</p>
           <h1>{product.name}</h1>
+          {product.ratingSummary && (
+            <a href="#customer-reviews">
+              <RatingSummary
+                average={product.ratingSummary.value}
+                count={product.ratingSummary.count}
+              />
+            </a>
+          )}
           <div className="detail-price">
             {hasVariants && !selected ? <span>From </span> : null}
             {formatINR(price)}
@@ -373,6 +385,7 @@ export function ProductDetail({
           </div>
         </section>
       ) : null}
+      <Reviews product={{ id: product.id, slug: product.slug }} />
     </div>
   );
 }

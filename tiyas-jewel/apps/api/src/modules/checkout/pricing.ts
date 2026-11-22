@@ -10,7 +10,11 @@ function roundRatio(value: number, numerator: number, denominator: number) {
       BigInt(denominator),
   );
 }
-export function calculateTotals(subtotalPaise: number, config: ApiConfig) {
+export function calculateTotals(
+  subtotalPaise: number,
+  config: ApiConfig,
+  discountPaise = 0,
+) {
   if (
     !Number.isSafeInteger(subtotalPaise) ||
     subtotalPaise < 1 ||
@@ -24,13 +28,20 @@ export function calculateTotals(subtotalPaise: number, config: ApiConfig) {
     subtotalPaise >= config.FREE_SHIPPING_THRESHOLD_PAISE
       ? 0
       : config.SHIPPING_FEE_PAISE;
+  if (
+    !Number.isSafeInteger(discountPaise) ||
+    discountPaise < 0 ||
+    discountPaise > subtotalPaise
+  )
+    throw new CheckoutError("INVALID_DISCOUNT", "The discount is invalid.");
   const taxPaise = roundRatio(
-    subtotalPaise,
+    subtotalPaise - discountPaise,
     config.TAX_BPS,
     config.TAX_MODE === "inclusive" ? 10000 + config.TAX_BPS : 10000,
   );
   const totalPaise =
-    subtotalPaise +
+    subtotalPaise -
+    discountPaise +
     shippingPaise +
     (config.TAX_MODE === "exclusive" ? taxPaise : 0);
   if (totalPaise > 100000000)
@@ -42,7 +53,7 @@ export function calculateTotals(subtotalPaise: number, config: ApiConfig) {
     subtotalPaise,
     shippingPaise,
     taxPaise,
-    discountPaise: 0 as const,
+    discountPaise,
     totalPaise,
     taxBps: config.TAX_BPS,
     taxMode: config.TAX_MODE,

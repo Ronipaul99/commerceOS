@@ -32,6 +32,8 @@ model Collection {
 }
 
 model Product {
+  reviews       CustomerReview[]
+  reelProducts  ReelProduct[]
   orderItems    OrderItem[]
   id            String              @id @default(cuid())
   name          String
@@ -142,6 +144,9 @@ enum ReservationState {
 }
 
 model Order {
+  couponRedemption CouponRedemption?
+  couponCode String? @db.VarChar(32)
+  couponSnapshot Json?
   id String @id @default(cuid())
   orderNumber String @unique
   idempotencyKey String @unique @db.Uuid
@@ -175,6 +180,8 @@ model Order {
   @@index([reservationState, reservationExpiresAt])
 }
 model OrderItem {
+  discountPaise Int @default(0)
+  reviews CustomerReview[]
   id String @id @default(cuid())
   orderId String
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
@@ -209,9 +216,13 @@ model AdminSession {
 }
 
 model ImageAsset {
+  sourceHash String? @db.Char(64)
+  renditions ImageRendition[]
+  stories CustomerStory[]
+  reelPosters Reel[]
   contentUses ContentAssetUse[]
   id String @id @db.Uuid
-  objectKey String @unique
+  objectKey String
   width Int
   height Int
   bytes Int
@@ -219,6 +230,171 @@ model ImageAsset {
   uploader AdminUser @relation(fields: [uploaderId], references: [id], onDelete: Restrict)
   image ProductImage?
   createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([objectKey])
+  @@index([uploaderId, sourceHash])
+}
+
+// Guest feedback shares verification/moderation while PRODUCT and STORE aggregates stay separate.
+model CustomerReview {
+  id String @id @default(cuid())
+  kind String @db.VarChar(10)
+  subjectKey String
+  productId String?
+  product Product? @relation(fields: [productId], references: [id], onDelete: Restrict)
+  emailKey String @db.Char(64)
+  email String @db.VarChar(254)
+  displayName String @db.VarChar(80)
+  title String @default("") @db.VarChar(120)
+  text String @db.VarChar(3000)
+  rating Int?
+  status String @default("PENDING") @db.VarChar(12)
+  orderItemId String?
+  orderItem OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
+  verifiedPurchase Boolean @default(false)
+  consentAt DateTime @db.Timestamptz(3)
+  consentVersion String @db.VarChar(30)
+  moderatedBy String?
+  moderationReason String @default("") @db.VarChar(500)
+  publishedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  stories CustomerStory[]
+  @@unique([emailKey, subjectKey])
+  @@index([kind, status, createdAt, id])
+  @@index([productId, status, createdAt, id])
+}
+
+model ReviewChallenge {
+  id String @id @default(uuid()) @db.Uuid
+  emailKey String @db.Char(64)
+  email String @db.VarChar(254)
+  subjectKey String
+  codeHash String @db.Char(64)
+  grantHash String? @unique @db.Char(64)
+  submissionHash String? @db.Char(64)
+  submittedReviewId String?
+  attempts Int @default(0)
+  expiresAt DateTime @db.Timestamptz(3)
+  usedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@unique([emailKey, subjectKey])
+  @@index([expiresAt])
+}
+
+model CustomerStory {
+  id String @id @default(cuid())
+  title String @db.VarChar(160)
+  caption String @db.VarChar(2000)
+  displayName String @db.VarChar(80)
+  reviewId String?
+  review CustomerReview? @relation(fields: [reviewId], references: [id], onDelete: Restrict)
+  imageAssetId String? @db.Uuid
+  image ImageAsset? @relation(fields: [imageAssetId], references: [id], onDelete: Restrict)
+  alt String @default("") @db.VarChar(300)
+  productIds String[] @default([])
+  consentEvidence String @db.VarChar(2000)
+  consentAt DateTime @db.Timestamptz(3)
+  published Boolean @default(false)
+  position Int @default(0)
+  updatedBy String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([published, position, id])
+}
+
+model Coupon {
+  id String @id @default(cuid())
+  code String @unique @db.VarChar(32)
+  description String @default("") @db.VarChar(300)
+  type String @db.VarChar(10)
+  value Int
+  minimumPaise Int @default(0)
+  maximumDiscountPaise Int?
+  usageLimit Int?
+  perCustomerLimit Int?
+  productIds String[] @default([])
+  categoryIds String[] @default([])
+  collectionIds String[] @default([])
+  paymentMethods String[] @default(["ONLINE", "COD"])
+  startsAt DateTime @db.Timestamptz(3)
+  endsAt DateTime @db.Timestamptz(3)
+  active Boolean @default(false)
+  archived Boolean @default(false)
+  version Int @default(1)
+  updatedBy String
+  redemptions CouponRedemption[]
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model CouponRedemption {
+  id String @id @default(cuid())
+  couponId String
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Restrict)
+  orderId String @unique
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  emailKey String @db.Char(64)
+  state String @db.VarChar(10)
+  amountPaise Int
+  expiresAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([couponId, state, expiresAt])
+  @@index([couponId, emailKey, state])
+}
+
+model Reel {
+  id String @id @default(cuid())
+  title String @db.VarChar(160)
+  caption String @default("") @db.VarChar(2000)
+  transcript String @default("") @db.VarChar(5000)
+  posterId String @db.Uuid
+  poster ImageAsset @relation(fields: [posterId], references: [id], onDelete: Restrict)
+  instagramUrl String @db.VarChar(100)
+  published Boolean @default(false)
+  rightsConfirmed Boolean @default(false)
+  position Int @default(0)
+  version Int @default(1)
+  updatedBy String
+  products ReelProduct[]
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([published, position, id])
+}
+
+model ReelProduct {
+  reelId String
+  productId String
+  reel Reel @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  position Int @default(0)
+  @@id([reelId, productId])
+}
+
+model ImageRendition {
+  contentHash String? @db.Char(64)
+  id String @id @default(cuid())
+  assetId String @db.Uuid
+  asset ImageAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  width Int
+  height Int
+  bytes Int
+  objectKey String
+  version Int @default(1)
+  @@unique([assetId, width, version])
+  @@index([objectKey])
+}
+
+model MediaPurgeEvent {
+  id BigInt @id @default(autoincrement())
+  paths String[]
+  attempts Int @default(0)
+  nextAttemptAt DateTime @db.Timestamptz(3)
+  leaseUntil DateTime? @db.Timestamptz(3)
+  leaseToken String? @db.Uuid
+  lastError String? @db.VarChar(40)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([nextAttemptAt, id])
 }
 
 enum AdminRole {

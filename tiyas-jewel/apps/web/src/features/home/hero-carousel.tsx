@@ -9,7 +9,11 @@ import {
   Play,
 } from "lucide-react";
 import { heroAutoplayIntervalMs, heroSlides } from "@/lib/homepage-config";
-import { ArtDirectedImage } from "@/components/ui/responsive-image";
+import {
+  ArtDirectedImage,
+  warmCampaignImage,
+  useMediaManifest,
+} from "@/components/ui/responsive-image";
 
 function subscribeMotion(onChange: () => void) {
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -21,9 +25,24 @@ function subscribeVisibility(onChange: () => void) {
   return () => document.removeEventListener("visibilitychange", onChange);
 }
 
-export type HeroSlide = {title:string;secondLine:string;eyebrow:string;description:string;cta:string;href:string;image:string;mobileImage:string;alt?:string};
-export function HeroCarousel({slides=heroSlides}:{slides?:readonly HeroSlide[]}) {
-  const heroSlides=slides;
+export type HeroSlide = {
+  title: string;
+  secondLine: string;
+  eyebrow: string;
+  description: string;
+  cta: string;
+  href: string;
+  image: string;
+  mobileImage: string;
+  alt?: string;
+};
+export function HeroCarousel({
+  slides = heroSlides,
+}: {
+  slides?: readonly HeroSlide[];
+}) {
+  const heroSlides = slides;
+  const manifest = useMediaManifest();
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -61,12 +80,22 @@ export function HeroCarousel({slides=heroSlides}:{slides?:readonly HeroSlide[]})
   }, []);
   useEffect(() => {
     if (!rotating || heroSlides.length < 2) return;
+    const warm = window.setTimeout(
+      () => {
+        const next = heroSlides[(active + 1) % heroSlides.length];
+        if (next) warmCampaignImage(next.image, next.mobileImage, manifest);
+      },
+      Math.max(0, heroAutoplayIntervalMs - 1200),
+    );
     const timer = window.setTimeout(
       () => setActive((index) => (index + 1) % heroSlides.length),
       heroAutoplayIntervalMs,
     );
-    return () => window.clearTimeout(timer);
-  }, [active, rotating, heroSlides.length]);
+    return () => {
+      window.clearTimeout(warm);
+      window.clearTimeout(timer);
+    };
+  }, [active, rotating, heroSlides, manifest]);
   const slide = heroSlides[active]!;
   return (
     <section
@@ -149,7 +178,8 @@ export function HeroCarousel({slides=heroSlides}:{slides?:readonly HeroSlide[]})
             desktop={slide.image}
             mobile={slide.mobileImage}
             alt={
-              slide.alt ?? (active === 0
+              slide.alt ??
+              (active === 0
                 ? "Concept campaign: traditional Kundan necklace and earrings on burgundy silk with flowers and warm festive lights"
                 : `Concept campaign for ${slide.eyebrow}`)
             }

@@ -16,6 +16,7 @@ RUN npm ci --ignore-scripts --no-audit --no-fund \
 
 FROM dependencies AS build
 COPY . .
+ARG SITE_PUBLIC_URL
 ENV API_INTERNAL_URL=http://api:4000 NEXT_OUTPUT_STANDALONE=true
 RUN npm run db:generate && npm run build
 

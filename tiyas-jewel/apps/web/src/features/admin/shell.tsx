@@ -15,6 +15,8 @@ import {
   Menu,
   X,
   ChevronDown,
+  TicketPercent,
+  MessageSquare,
 } from "lucide-react";
 import type { AdminSession } from "@tiyas/shared";
 import { adminRequest, adminOkSchema, AdminApiError } from "@/lib/admin-client";
@@ -142,6 +144,16 @@ export function AdminShell({
                       name: "Products",
                       icon: Package,
                     },
+                    {
+                      href: "/admin/coupons",
+                      name: "Coupons",
+                      icon: TicketPercent,
+                    },
+                    {
+                      href: "/admin/reviews",
+                      name: "Customer Reviews",
+                      icon: MessageSquare,
+                    },
                   ]
                 : []),
               { href: "/admin/content", name: "Content (CMS)", icon: FileText },
@@ -173,6 +185,7 @@ export function AdminShell({
                       ["Banners & Carousel", "banners"],
                       ["Static Pages", "pages"],
                       ["Menus & Links", "menus"],
+                      ["Shop Our Reels", "reels"],
                     ].map(([label, tab]) => (
                       <Link
                         key={tab}

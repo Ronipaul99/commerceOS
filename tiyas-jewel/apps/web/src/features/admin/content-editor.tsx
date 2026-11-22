@@ -56,6 +56,8 @@ const labels = {
   trust: "Why Shop at Tiyas",
   story: "The Tiyas Story",
   newsletter: "Newsletter",
+  reviews: "Customer Reviews",
+  reels: "Shop Our Reels",
 };
 const icons = {
   hero: Home,
@@ -69,6 +71,8 @@ const icons = {
   trust: Sparkles,
   story: Type,
   newsletter: FileText,
+  reviews: Type,
+  reels: ImageIcon,
 };
 const descriptions = {
   hero: "Main homepage banner carousel",
@@ -82,6 +86,8 @@ const descriptions = {
   trust: "Approved service and shopping information",
   story: "About the brand, imagery and story link",
   newsletter: "Newsletter heading and introduction",
+  reviews: "Real, published store feedback",
+  reels: "Published shoppable reels with actual catalog products",
 };
 const uid = () => crypto.randomUUID();
 type Summary = { key: string; title: string; publishedAt: string | null };
@@ -668,9 +674,35 @@ export function ContentEditor({
             </header>
             {target && (
               <fieldset className="cms-fields" disabled={busy || uploading}>
-                {!["arrivals", "trust", "newsletter"].includes(
-                  current!.kind,
-                ) && (
+                {!selected && ["reviews", "reels"].includes(current!.kind) && (
+                  <label>
+                    Selected published record IDs (comma separated; empty uses
+                    latest)
+                    <input
+                      value={current!.recordIds.join(", ")}
+                      onChange={(e) =>
+                        changeSection({
+                          ...current!,
+                          recordIds: e.target.value
+                            .split(",")
+                            .map((v) => v.trim())
+                            .filter(Boolean),
+                        })
+                      }
+                    />
+                    <small>
+                      Manage approved feedback in Customer Reviews, or videos in
+                      Shop Our Reels. Only records still published can appear.
+                    </small>
+                  </label>
+                )}
+                {![
+                  "arrivals",
+                  "trust",
+                  "newsletter",
+                  "reviews",
+                  "reels",
+                ].includes(current!.kind) && (
                   <>
                     <div className="cms-image-field">
                       <span>Banner Image</span>

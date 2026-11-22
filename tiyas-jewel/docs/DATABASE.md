@@ -1,5 +1,7 @@
 # Database foundation
 
+Customer-experience migrations add subject-separated `CustomerReview` records and verification challenges, consented stories, coupons/redemptions, Instagram Reel links and image renditions. Orders/items retain immutable discount snapshots in integer paise. Ownership-scoped image aliases are guarded in PostgreSQL. See [CUSTOMER_EXPERIENCE.md](CUSTOMER_EXPERIENCE.md) for migration names, backup/activation steps, lifecycle rules and the distinction between isolated verification and store deployment.
+
 PostgreSQL 17 with Prisma 7 and the PostgreSQL driver adapter. The API is the only application allowed database access. Prisma CLI/seed are explicit development/operations tools. Generated client output belongs to `apps/api/src/generated/prisma` and is ignored by Git; both install and Docker builds regenerate it.
 
 ## Initial migration

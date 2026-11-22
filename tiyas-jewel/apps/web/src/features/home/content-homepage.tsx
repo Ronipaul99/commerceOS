@@ -20,6 +20,9 @@ import { ProductRail } from "./product-rail";
 import { HomeMotion } from "./home-motion";
 import { HomeProductSkeleton } from "./home-catalog";
 import { previewSections } from "@/lib/content-preview";
+import { withExperienceSections } from "@/lib/experience-content";
+import { HomeReviews } from "@/features/reviews/home-reviews";
+import { HomeReels } from "@/features/reels/home-reels";
 function Heading({ section: s }: { section: ContentSection }) {
   return (
     <header className="tj-section-heading">
@@ -142,6 +145,22 @@ async function Showcases({ section: s }: { section: ContentSection }) {
   );
 }
 function Section({ section: s }: { section: ContentSection }) {
+  if (s.kind === "reviews")
+    return (
+      <Suspense fallback={null}>
+        <HomeReviews title={s.title} ids={s.recordIds} />
+      </Suspense>
+    );
+  if (s.kind === "reels")
+    return (
+      <Suspense fallback={null}>
+        <HomeReels
+          title={s.title}
+          description={s.description}
+          ids={s.recordIds}
+        />
+      </Suspense>
+    );
   const items = s.items.filter((i) => i.enabled);
   if (s.kind === "hero") {
     const slides = items
@@ -370,7 +389,8 @@ export function ContentHomepage({
   content: HomepageContent;
   previewSectionId?: string;
 }) {
-  const sections = previewSections(content, previewSectionId) ?? [];
+  const sections =
+    previewSections(withExperienceSections(content), previewSectionId) ?? [];
   return (
     <div className="festival-home">
       <HomeMotion />

@@ -65,7 +65,7 @@ export function imageStorage(config: ApiConfig): ImageStorage {
     config.STORAGE_LOCAL_DIR,
   );
   function filename(key: string) {
-    if (!/^products\/[a-f0-9-]{36}\.webp$/.test(key))
+    if (!/^products\/[a-f0-9-]{36}(?:\/\d{2,4})?\.webp$/.test(key))
       throw Error("Unsafe object key");
     return path.join(root, key);
   }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { cartRequestSchema } from "./shopping.js";
+import { couponCodeSchema } from "./experience.js";
 export const indianStates = [
   "Andaman and Nicobar Islands",
   "Andhra Pradesh",
@@ -53,15 +54,15 @@ export const pinCodeSchema = z
   .regex(/^[1-9][0-9]{5}$/, "Enter a valid six-digit PIN code");
 export const guestSchema = z
   .object({
-    fullName: text(2, 100),
-    email: z
-      .email()
-      .max(254)
-      .transform((v) => v.toLowerCase()),
+    fullName: text(2, 100).refine(
+      (v) => /\p{L}/u.test(v),
+      "Enter your name, including at least one letter.",
+    ),
+    email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
     mobile: z
       .string()
       .trim()
-      .transform((v) => v.replace(/^\+91[ -]?/, ""))
+      .transform((v) => v.replace(/[\s()-]/g, "").replace(/^\+91/, ""))
       .pipe(
         z
           .string()
@@ -74,7 +75,10 @@ export const addressSchema = z
     line1: text(5, 160),
     line2: text(0, 160).default(""),
     landmark: text(0, 120).default(""),
-    city: text(2, 80),
+    city: text(2, 80).refine(
+      (v) => /\p{L}/u.test(v),
+      "Enter a valid city name.",
+    ),
     state: z.enum(indianStates),
     pinCode: pinCodeSchema,
     country: z.literal("IN").default("IN"),
@@ -84,6 +88,14 @@ export const checkoutQuoteRequestSchema = z
   .object({
     items: cartRequestSchema.shape.items.min(1),
     pinCode: pinCodeSchema,
+    couponCode: couponCodeSchema.optional(),
+    customerEmail: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .pipe(z.email().max(254))
+      .optional(),
+    paymentMethod: z.enum(["ONLINE", "COD"]).optional(),
   })
   .strict()
   .refine(
@@ -134,12 +146,14 @@ export const orderLineSchema = z.object({
   quantity: z.number().int().min(1).max(99),
   unitPricePaise: amount,
   lineTotalPaise: amount,
+  discountPaise: amount.optional(),
 });
 export const totalsSchema = z.object({
   subtotalPaise: amount,
   shippingPaise: amount,
   taxPaise: amount,
-  discountPaise: z.literal(0).default(0),
+  discountPaise: amount.default(0),
+  couponCode: z.string().nullable().optional(),
   totalPaise: amount,
   taxMode: z.enum(["inclusive", "exclusive"]),
   taxBps: z.number().int().min(0).max(10000),

@@ -17,6 +17,9 @@ import "./order-result.css";
 import "./density.css";
 
 export const metadata: Metadata = {
+  ...(process.env.SITE_PUBLIC_URL
+    ? { metadataBase: new URL(process.env.SITE_PUBLIC_URL) }
+    : {}),
   title: {
     default: "TIYAS JEWEL | Jewellery, thoughtfully chosen",
     template: "%s | TIYAS JEWEL",

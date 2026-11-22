@@ -42,8 +42,22 @@ async function post<T>(
   return schema.parse(json);
 }
 export const checkoutApi = {
-  quote: (items: CartItemRef[], pinCode: string, signal?: AbortSignal) =>
-    post("checkout/quote", { items, pinCode }, checkoutQuoteSchema, signal),
+  quote: (
+    items: CartItemRef[],
+    pinCode: string,
+    signal?: AbortSignal,
+    context: {
+      couponCode?: string;
+      customerEmail?: string;
+      paymentMethod?: "ONLINE" | "COD";
+    } = {},
+  ) =>
+    post(
+      "checkout/quote",
+      { items, pinCode, ...context },
+      checkoutQuoteSchema,
+      signal,
+    ),
   place: (input: CheckoutRequest) =>
     post("checkout/place", input, orderViewSchema),
   confirmation: (token: string) =>

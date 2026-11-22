@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./experience.css";
 
 /* Primitive palette -> semantic roles -> component sizing. */
 :root {

@@ -86,7 +86,10 @@ export function presentProduct(product: Product): DisplayProduct {
     pricePaise: product.pricePaise,
     image: missingImage ? concept : image.url,
     raw: product,
-    cardDetails: product.details ?? undefined,
+    cardDetails: {
+      ...product.details,
+      ...(product.ratingSummary ? { rating: product.ratingSummary } : {}),
+    },
     hasVariants: product.variants.length > 0,
     compareAtPaise: product.compareAtPaise,
     alternateImage: product.images[1]?.url,

@@ -68,6 +68,12 @@ export function OrderSummary({
                 : formatINR(order.shippingPaise)}
             </dd>
           </div>
+          {order.discountPaise > 0 && (
+            <div className="experience-discount">
+              <dt>Coupon {order.couponCode ?? "discount"}</dt>
+              <dd>−{formatINR(order.discountPaise)}</dd>
+            </div>
+          )}
           <div>
             <dt>Tax {order.taxMode === "inclusive" ? "(included)" : ""}</dt>
             <dd>{formatINR(order.taxPaise)}</dd>

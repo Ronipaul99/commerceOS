@@ -261,6 +261,10 @@ export async function uploadedImageRoutes(
   const storage = options.storage ?? imageStorage(options.config),
     auth = adminAuth(app, options.config);
   app.get("/images/uploads/:file", async (req, reply) => {
+    const { width } = z
+      .object({ width: z.coerce.number().int().min(16).max(3840).optional() })
+      .strict()
+      .parse(req.query);
     const { file } = z
       .object({ file: z.string().regex(/^[a-f0-9-]{36}\.webp$/) })
       .parse(req.params);
@@ -282,16 +286,36 @@ export async function uploadedImageRoutes(
     const publishedContent = await app.db.contentAssetUse.count({
       where: { assetId: id, published: true },
     });
+    const publicStory = await app.db.customerStory.count({
+      where: {
+        imageAssetId: id,
+        published: true,
+        OR: [{ reviewId: null }, { review: { status: "PUBLISHED" } }],
+      },
+    });
+    const publicReel = options.config.REELS_ENABLED
+      ? await app.db.reel.count({
+          where: { posterId: id, published: true, rightsConfirmed: true },
+        })
+      : 0;
     if (
       !published &&
       !historical &&
       !publishedContent &&
+      !publicStory &&
+      !publicReel &&
       !(await auth.session(req))
     )
       throw new AdminError("NOT_FOUND", "Image not found.", 404);
     let buffer: Buffer;
     try {
-      buffer = await storage.get(asset.objectKey);
+      const rendition = width
+        ? await app.db.imageRendition.findFirst({
+            where: { assetId: id, width: { gte: width } },
+            orderBy: { width: "asc" },
+          })
+        : null;
+      buffer = await storage.get(rendition?.objectKey ?? asset.objectKey);
     } catch {
       throw new AdminError(
         "IMAGE_UNAVAILABLE",

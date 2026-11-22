@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isIP } from "node:net";
 
 const optionalSecret = <T extends z.ZodType>(schema: T) =>
   z.preprocess((v) => (v === "" ? undefined : v), schema.optional());
@@ -14,6 +15,9 @@ const envSchema = z
       .default("development"),
     API_HOST: z.string().default("127.0.0.1"),
     API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+    API_TRUSTED_PROXY_IP: optionalSecret(
+      z.string().refine((ip) => isIP(ip) > 0, "Enter one exact proxy IP"),
+    ),
     DATABASE_URL: z.url().refine((value) => {
       try {
         return ["postgres:", "postgresql:"].includes(new URL(value).protocol);
@@ -22,6 +26,50 @@ const envSchema = z
       }
     }),
     ADMIN_SESSION_HOURS: z.coerce.number().int().min(1).max(24).default(8),
+    REVIEWS_ENABLED: bool,
+    HOMEPAGE_REVIEWS_ENABLED: bool,
+    COUPONS_ENABLED: bool,
+    REELS_ENABLED: bool,
+    PUBLIC_MEDIA_CACHE_ENABLED: bool,
+    PUBLIC_MEDIA_EDGE_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(300)
+      .default(300),
+    PUBLIC_MEDIA_BROWSER_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(60)
+      .default(60),
+    CDN_PROVIDER: z.enum(["disabled", "cloudflare"]).default("disabled"),
+    CDN_ZONE_ID: optionalSecret(z.string().regex(/^[a-f0-9]{32}$/i)),
+    CDN_PURGE_API_TOKEN: optionalSecret(z.string().min(16).max(512)),
+    CDN_PUBLIC_HOSTS: z
+      .string()
+      .default("")
+      .transform((s) => [
+        ...new Set(
+          s
+            .split(",")
+            .map((v) => v.trim().toLowerCase())
+            .filter(Boolean),
+        ),
+      ])
+      .pipe(
+        z
+          .array(
+            z
+              .string()
+              .regex(
+                /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{1,62}$/,
+              ),
+          )
+          .max(2),
+      ),
+    CDN_PURGE_BATCH_SIZE: z.coerce.number().int().min(1).max(16).default(16),
+    REVIEW_OTP_SECRET: optionalSecret(z.string().min(32)),
     SMTP_HOST: optionalSecret(z.string().min(1)),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
     SMTP_SECURE: bool,
@@ -109,6 +157,22 @@ const envSchema = z
           : "development"),
   }))
   .superRefine((v, ctx) => {
+    if (
+      v.CDN_PROVIDER === "cloudflare" &&
+      (!v.CDN_ZONE_ID || !v.CDN_PURGE_API_TOKEN || !v.CDN_PUBLIC_HOSTS.length)
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["CDN_PROVIDER"],
+        message:
+          "Cloudflare requires the single zone ID, purge token and approved host list",
+      });
+    if (v.PUBLIC_MEDIA_CACHE_ENABLED && v.CDN_PROVIDER !== "cloudflare")
+      ctx.addIssue({
+        code: "custom",
+        path: ["PUBLIC_MEDIA_CACHE_ENABLED"],
+        message: "Enable a qualified purge provider before public caching",
+      });
     if (
       v.STORAGE_ADAPTER === "oci" &&
       (!v.OCI_S3_ENDPOINT ||

@@ -128,6 +128,48 @@ const key = () => {
   return k;
 };
 describe("CMS publication and access", () => {
+  it("preserves explicit review and reel opt-outs in the published homepage", async () => {
+    const existing = await app.db.contentDocument.findUnique({
+      where: { key: "homepage" },
+    });
+    expect(
+      existing,
+      "Use an isolated database without a homepage fixture",
+    ).toBeNull();
+    keys.push("homepage");
+    const response = await req("POST", "/content/homepage/publish", {
+      version: 0,
+      published: true,
+      value: {
+        type: "homepage",
+        content: {
+          sections: [
+            { id: "story", kind: "story", title: "Our story" },
+            {
+              id: "reviews",
+              kind: "reviews",
+              title: "Draft review picks",
+              enabled: false,
+              recordIds: ["draft-only"],
+            },
+            {
+              id: "reels",
+              kind: "reels",
+              title: "Draft reel picks",
+              enabled: false,
+            },
+          ],
+        },
+      },
+    });
+    expect(response.statusCode, response.body).toBe(200);
+    const sections = response.json().data.published.content.sections;
+    expect(sections).toMatchObject([
+      { kind: "story", enabled: true },
+      { kind: "reviews", enabled: false, title: "", recordIds: [] },
+      { kind: "reels", enabled: false, title: "", recordIds: [] },
+    ]);
+  });
   it("protects every content/user action and enforces CSRF", async () => {
     expect(
       (await app.inject({ method: "GET", url: "/api/v1/admin/content" }))

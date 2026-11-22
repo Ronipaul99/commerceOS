@@ -58,7 +58,13 @@ export async function checkoutRoutes(
   });
   app.post("/checkout/quote", async (request) => {
     const input = checkoutQuoteRequestSchema.parse(request.body);
-    return { data: await service.quote(input.items, input.pinCode) };
+    return {
+      data: await service.quote(input.items, input.pinCode, {
+        couponCode: input.couponCode,
+        email: input.customerEmail,
+        paymentMethod: input.paymentMethod,
+      }),
+    };
   });
   app.post("/checkout/place", async (request) => ({
     data: await service.place(checkoutRequestSchema.parse(request.body)),

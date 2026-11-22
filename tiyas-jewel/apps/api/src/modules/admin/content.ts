@@ -1,4 +1,8 @@
-import { contentValueSchema, type ContentValue } from "@tiyas/shared";
+import {
+  contentSectionSchema,
+  contentValueSchema,
+  type ContentValue,
+} from "@tiyas/shared";
 import { Prisma, type PrismaClient } from "../../generated/prisma/client.js";
 import { AdminError } from "./errors.js";
 function assets(value: unknown): string[] {
@@ -85,19 +89,28 @@ export function adminContent(db: PrismaClient) {
           ? {
               type: "homepage",
               content: {
-                sections: value.content.sections
-                  .filter((s) => s.enabled)
-                  .map((s) => ({
-                    ...s,
-                    items: s.items.filter((i) => i.enabled),
-                  })),
+                sections: value.content.sections.flatMap((s) => {
+                  if (s.enabled)
+                    return [{ ...s, items: s.items.filter((i) => i.enabled) }];
+                  // Keep the opt-out so legacy homepage defaults cannot reinsert this section.
+                  if (s.kind === "reviews" || s.kind === "reels")
+                    return [
+                      contentSectionSchema.parse({
+                        id: s.id,
+                        kind: s.kind,
+                        title: "",
+                        enabled: false,
+                      }),
+                    ];
+                  return [];
+                }),
               },
             }
           : value;
       if (
         publish &&
         liveValue.type === "homepage" &&
-        !liveValue.content.sections.length
+        !liveValue.content.sections.some((section) => section.enabled)
       )
         throw new AdminError(
           "EMPTY_HOMEPAGE",

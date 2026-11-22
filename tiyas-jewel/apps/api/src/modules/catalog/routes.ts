@@ -7,8 +7,8 @@ import {
 } from "@tiyas/shared";
 import { catalogRepository } from "./repository.js";
 import { resolveCart } from "./cart.js";
-export async function catalogRoutes(app: FastifyInstance) {
-  const catalog = catalogRepository(app.db);
+export async function catalogRoutes(app: FastifyInstance, options: { publicMedia?: boolean }) {
+  const catalog = catalogRepository(app.db, options.publicMedia);
   app.get("/products", async (request) =>
     catalog.listProducts(catalogQuerySchema.parse(request.query)),
   );

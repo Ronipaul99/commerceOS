@@ -116,6 +116,7 @@ export function ProductCard({
     defaultColorVariant(product, details ?? product.cardDetails),
   );
   const [imageIndex, setImageIndex] = useState(0);
+  const [alternateReady, setAlternateReady] = useState(false);
   const selectId = useId();
   const facts = verifiedCardDetails(details ?? product.cardDetails);
   const selection = cardSelection(product, variantId);
@@ -180,9 +181,14 @@ export function ProductCard({
           href={href}
           className="tj-pc-image-link"
           aria-label={`View ${product.name}`}
+          onPointerEnter={(event) => {
+            if (event.pointerType === "mouse") setAlternateReady(true);
+          }}
+          onFocus={() => setAlternateReady(true)}
         >
           <ResponsiveImage
             src={activeImage.url}
+            publicMedia={activeImage.publicMedia}
             alt={product.conceptImage ? product.alt : activeImage.alt}
             className="tj-pc-photo"
             sizes={
@@ -191,10 +197,11 @@ export function ProductCard({
                 : "(max-width: 767px) 48vw, (max-width: 1199px) 30vw, 25vw"
             }
           />
-          {!inDialog && imageIndex === 0 && images[1] && (
+          {!inDialog && alternateReady && imageIndex === 0 && images[1] && (
             <ResponsiveImage
               className="tj-pc-alternate"
               src={images[1].url}
+              publicMedia={images[1].publicMedia}
               alt={`${product.name}, alternate view`}
               sizes="(max-width: 767px) 48vw, 25vw"
             />

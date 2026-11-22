@@ -4,6 +4,7 @@ import {
   type CatalogQuery,
   type Product,
 } from "@tiyas/shared";
+import { publicManifests } from "../media/public-media.js";
 const productInclude = {
   category: true,
   images: { orderBy: { position: "asc" } },
@@ -86,7 +87,47 @@ const inStock = {
     { variants: { some: { active: true, stockQuantity: { gt: 0 } } } },
   ],
 } satisfies Prisma.ProductWhereInput;
-export function catalogRepository(db: PrismaClient) {
+export function catalogRepository(db: PrismaClient, publicMedia = false) {
+  async function rated(
+    tx: Prisma.TransactionClient | PrismaClient,
+    products: ProductRecord[],
+  ) {
+    const summaries = await tx.customerReview.groupBy({
+      by: ["productId"],
+      where: {
+        productId: { in: products.map((p) => p.id) },
+        kind: "PRODUCT",
+        status: "PUBLISHED",
+        rating: { not: null },
+      },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+    const media = publicMedia
+      ? await publicManifests(
+          tx,
+          products.flatMap((p) =>
+            p.images.flatMap((i) => (i.assetId ? [i.assetId] : [])),
+          ),
+        )
+      : {};
+    return products.map((p) => {
+      const rating = summaries.find((r) => r.productId === p.id);
+      const product = toProduct(p);
+      return {
+        ...product,
+        images: product.images.map((image) =>
+          media[image.url]
+            ? { ...image, publicMedia: media[image.url] }
+            : image,
+        ),
+        ratingSummary:
+          rating && rating._avg.rating
+            ? { value: rating._avg.rating, count: rating._count.rating }
+            : null,
+      };
+    });
+  }
   return {
     async listProducts(query: CatalogQuery) {
       const {
@@ -141,7 +182,7 @@ export function catalogRepository(db: PrismaClient) {
           });
           const total = await tx.product.count({ where });
           return {
-            data: products.map(toProduct),
+            data: await rated(tx, products),
             pagination: {
               page,
               limit,
@@ -158,17 +199,18 @@ export function catalogRepository(db: PrismaClient) {
         where: { ...publicProduct, slug },
         include: productInclude,
       });
-      return product ? toProduct(product) : null;
+      return product ? (await rated(db, [product]))[0]! : null;
     },
     async findByIds(ids: string[]) {
       return db.$transaction(
         async (tx) =>
-          (
+          rated(
+            tx,
             await tx.product.findMany({
               where: { ...publicProduct, id: { in: ids } },
               include: productInclude,
-            })
-          ).map(toProduct),
+            }),
+          ),
         { isolationLevel: "RepeatableRead" },
       );
     },
@@ -225,7 +267,7 @@ export function catalogRepository(db: PrismaClient) {
       });
       return {
         data: {
-          products: products.map(toProduct),
+          products: await rated(db, products),
           categories: categories.map(taxonomy),
         },
       };

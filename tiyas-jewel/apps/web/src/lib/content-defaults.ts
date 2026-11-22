@@ -172,6 +172,17 @@ export function defaultHomepage(): ContentValue {
           description:
             "New collections, styling notes and a little inspiration. Sign-up opens soon.",
         }),
+        section("reels", "reels", {
+          title: "Shop Our Reels",
+          description: "Watch & shop the latest saree looks",
+          enabled: false,
+        }),
+        section("reviews", "reviews", {
+          title: "Our Customers Love Us",
+          description: "Experiences shared in our customers’ own words.",
+          href: "/happy-customers",
+          enabled: false,
+        }),
       ],
     },
   };
@@ -189,6 +200,7 @@ export function defaultNavigation(): ContentValue {
         { label: "Your wishlist", href: "/wishlist" },
         { label: "Your bag", href: "/cart" },
         { label: "Our story", href: "/info/our-story" },
+        { label: "Happy customers", href: "/happy-customers" },
       ],
       footer: [
         {

@@ -1,5 +1,18 @@
 {
   "extends": "./tsconfig.base.json",
-  "compilerOptions": { "module": "NodeNext", "moduleResolution": "NodeNext", "noEmit": true },
-  "include": ["prisma/**/*.ts", "prisma.config.ts", "vitest*.ts", "playwright.config.ts", "tests/**/*.ts", "apps/api/tests/**/*.ts", "packages/shared/tests/**/*.ts"]
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true
+  },
+  "include": [
+    "prisma/**/*.ts",
+    "prisma.config.ts",
+    "vitest*.ts",
+    "playwright.config.ts",
+    "playwright.experience.config.ts",
+    "tests/**/*.ts",
+    "apps/api/tests/**/*.ts",
+    "packages/shared/tests/**/*.ts"
+  ]
 }

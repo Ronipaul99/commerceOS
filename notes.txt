@@ -1,0 +1,6 @@
+there is no coupon apply field at checkout at storefront 
+no review submit and ratting about the product section is available after customer receive the product in store front 
+no review submit section is available for the tiyash jewel , there should be a section where user should be able to write your experiance with tiyash jewel after entering an email on storefront ,
+need to improve the product details page ui add review and rattings 
+at the product creating there should be tag field 
+and on the home page at store front shop by catagory , shop by occussion , and shop by type sectionn product list should come from the macching tags and perticular type of the jewlary what ever is applicable . 

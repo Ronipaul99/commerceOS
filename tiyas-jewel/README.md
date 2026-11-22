@@ -4,6 +4,8 @@ A single jewellery storefront for India: Next.js App Router, a Fastify API and P
 
 The newly approved festive homepage redesign is implemented on top of Stages 01-04. See [redesign notes](docs/HOMEPAGE_REDESIGN.md) for real API product composition, explicitly approved fallback groups, assets, responsive behavior and verification.
 
+Customer reviews, consented stories, admin/checkout coupons, shoppable CMS reels and responsive image renditions are implemented behind independent feature switches. Read [customer experience setup and rollout](docs/CUSTOMER_EXPERIENCE.md) before starting the updated application: apply its additive database migrations first, then qualify SMTP, media delivery and business content before enabling features. CDN deployment is a separate planned task.
+
 ## Development and checks
 
 Run `npm.cmd run dev` for web/API after configuring and migrating a dedicated database as described below. The homepage alone can be previewed with `npm.cmd run dev:web`; actual shopping requires the API. Run `npm.cmd run lint`, `npm.cmd run typecheck` and `npm.cmd test` for static/unit checks.

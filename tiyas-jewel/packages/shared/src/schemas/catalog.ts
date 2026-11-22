@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { publicMediaManifestSchema } from "./public-media.js";
 
 export const slugSchema = z
   .string()
@@ -44,6 +45,7 @@ export const productDetailsSchema = z
 export const productImageSchema = z.object({
   id: z.string(),
   url: z.string().startsWith("/images/"),
+  publicMedia: publicMediaManifestSchema.optional(),
   alt: z.string(),
   concept: z.boolean().optional(),
   position: z.number().int(),
@@ -58,6 +60,13 @@ export const productVariantSchema = z.object({
   imageId: z.string().nullable().optional(),
 });
 export const productSchema = z.object({
+  ratingSummary: z
+    .object({
+      value: z.number().min(1).max(5),
+      count: z.number().int().positive(),
+    })
+    .nullable()
+    .optional(),
   id: z.string(),
   name: z.string(),
   slug: slugSchema,

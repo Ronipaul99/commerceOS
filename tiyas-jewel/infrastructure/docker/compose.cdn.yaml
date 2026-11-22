@@ -1,0 +1,35 @@
+# Optional HTTPS ingress for the single-origin OCI deployment.
+# Use with the root compose.yaml and the edge profile.
+services:
+  api:
+    environment:
+      API_TRUSTED_PROXY_IP: ${CDN_PROXY_IP:?Set a fixed address in CDN_PROXY_SUBNET}
+    networks:
+      default: {}
+      cdn_hop:
+        aliases: [api-cdn]
+  web:
+    ports: !reset []
+    build:
+      args:
+        SITE_PUBLIC_URL: ${SITE_PUBLIC_URL:?Set the canonical HTTPS origin}
+  nginx:
+    ports: !override
+      - "80:80"
+      - "443:443"
+    networks:
+      default: {}
+      cdn_hop:
+        ipv4_address: ${CDN_PROXY_IP:?Set a fixed address in CDN_PROXY_SUBNET}
+    volumes: !override
+      - "${CDN_ORIGIN_CONFIG:?Set the generated Nginx configuration path}:/etc/nginx/conf.d/default.conf:ro"
+      - "${CDN_ORIGIN_TLS_DIR:?Set the directory containing fullchain.pem and privkey.pem}:/etc/nginx/tiyas-tls:ro"
+    healthcheck:
+      test: ["CMD", "nginx", "-t", "-q"]
+
+networks:
+  cdn_hop:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${CDN_PROXY_SUBNET:?Choose an unused private IPv4 subnet}

@@ -1,9 +1,10 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { Prisma, type PrismaClient } from "../../generated/prisma/client.js";
 import { productDetailsSchema, type AdminProductInput } from "@tiyas/shared";
 import type { ImageStorage } from "../../integrations/image-storage.js";
 import { validateImage } from "../../integrations/image-storage.js";
 import { AdminError } from "./errors.js";
+import { createRenditions } from "../media/renditions.js";
 type Tx = Prisma.TransactionClient;
 const include = {
   category: true,
@@ -379,6 +380,21 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
           "This product is referenced by an order. Archive it instead.",
           409,
         );
+      if (
+        (await tx.customerReview.count({ where: { productId: id } })) ||
+        (await tx.reelProduct.count({ where: { productId: id } })) ||
+        (await tx.customerStory.count({
+          where: { productIds: { has: id } },
+        })) ||
+        (await tx.coupon.count({
+          where: { archived: false, productIds: { has: id } },
+        }))
+      )
+        throw new AdminError(
+          "PRODUCT_IN_USE",
+          "This product is referenced by customer content or an offer. Archive it instead.",
+          409,
+        );
       await tx.productVariant.updateMany({
         where: { productId: id },
         data: { imageId: null },
@@ -389,6 +405,49 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
   }
   async function upload(buffer: Buffer, adminId: string) {
     const image = await validateImage(buffer);
+    const sourceHash = createHash("sha256").update(image.data).digest("hex");
+    const shared = await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${`tiyas-image:${adminId}:${sourceHash}`},0))`;
+      const existing = await tx.imageAsset.findFirst({
+        where: { uploaderId: adminId, sourceHash },
+        include: { renditions: true },
+      });
+      if (!existing) return null;
+      const id = randomUUID();
+      const asset = await tx.imageAsset.create({
+        data: {
+          id,
+          objectKey: existing.objectKey,
+          width: existing.width,
+          height: existing.height,
+          bytes: existing.bytes,
+          uploaderId: adminId,
+          sourceHash,
+        },
+      });
+      await tx.imageRendition.createMany({
+        data: existing.renditions.map((r) => ({
+          assetId: id,
+          width: r.width,
+          height: r.height,
+          bytes: r.bytes,
+          version: r.version,
+          contentHash: r.contentHash,
+          objectKey: r.objectKey,
+        })),
+      });
+      return asset;
+    });
+    if (shared)
+      return {
+        data: {
+          id: shared.id,
+          url: `/images/uploads/${shared.id}.webp`,
+          width: shared.width,
+          height: shared.height,
+          bytes: shared.bytes,
+        },
+      };
     const id = randomUUID(),
       objectKey = `products/${id}.webp`;
     await storage.put(objectKey, image.data);
@@ -403,7 +462,11 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
           uploaderId: adminId,
         },
       });
+      await createRenditions(db, storage, id, image.data);
     } catch (e) {
+      await db.imageAsset
+        .deleteMany({ where: { id, image: null } })
+        .catch(() => {});
       await storage.remove(objectKey).catch(() => {});
       throw e;
     }
@@ -427,8 +490,12 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
         });
         if (!asset || asset.uploaderId !== adminId)
           throw new AdminError("NOT_FOUND", "Image not found.", 404);
+        if (asset.sourceHash)
+          await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${`tiyas-image:${adminId}:${asset.sourceHash}`},0))`;
         if (
           asset.image ||
+          (await tx.customerStory.count({ where: { imageAssetId: id } })) > 0 ||
+          (await tx.reel.count({ where: { posterId: id } })) > 0 ||
           (await tx.contentAssetUse.count({ where: { assetId: id } })) > 0 ||
           (await tx.orderItem.count({
             where: { image: `/images/uploads/${id}.webp` },
@@ -439,7 +506,22 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
             "Remove the image from the product first. Order images are retained.",
             409,
           );
-        await storage.remove(asset.objectKey);
+        const renditions = await tx.imageRendition.findMany({
+          where: { assetId: id },
+        });
+        for (const rendition of renditions)
+          if (
+            (await tx.imageRendition.count({
+              where: { objectKey: rendition.objectKey },
+            })) === 1
+          )
+            await storage.remove(rendition.objectKey);
+        if (
+          (await tx.imageAsset.count({
+            where: { objectKey: asset.objectKey },
+          })) === 1
+        )
+          await storage.remove(asset.objectKey);
         await tx.imageAsset.delete({ where: { id } });
         return { data: { ok: true } };
       },

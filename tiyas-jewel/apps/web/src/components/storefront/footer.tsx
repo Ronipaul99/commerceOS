@@ -35,13 +35,14 @@ const groups = [
     title: "About Tiyas",
     links: [
       ["Our story", "/info/our-story"],
+      ["Happy customers", "/happy-customers"],
       ["The journal", "/journal/the-art-of-layering"],
       ["Privacy policy", "/info/privacy"],
       ["Terms & conditions", "/info/terms"],
     ],
   },
 ];
-export function Footer({menus}:{menus?:NavigationContent} = {}) {
+export function Footer({ menus }: { menus?: NavigationContent } = {}) {
   return (
     <footer className="site-footer tj-footer">
       <div className="tj-shell tj-footer-main">
@@ -70,7 +71,13 @@ export function Footer({menus}:{menus?:NavigationContent} = {}) {
           </div>
         </div>
         <div className="tj-footer-groups">
-          {(menus ? menus.footer.map(g=>({title:g.title,links:g.links.map(l=>[l.label,l.href])})) : groups).map((g) => (
+          {(menus
+            ? menus.footer.map((g) => ({
+                title: g.title,
+                links: g.links.map((l) => [l.label, l.href]),
+              }))
+            : groups
+          ).map((g) => (
             <FooterGroup key={g.title} {...g} />
           ))}
         </div>

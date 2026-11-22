@@ -2,11 +2,14 @@ import {
   contentDocumentResponseSchema,
   contentDocumentsResponseSchema,
   contentKeySchema,
+  adminReelsSchema,
 } from "@tiyas/shared";
 import { adminGet } from "@/lib/admin-server";
 import { ContentEditor } from "@/features/admin/content-editor";
 import { Suspense } from "react";
 import { AdminPageSkeleton } from "@/features/admin/loading-ui";
+import { ReelsEditor } from "@/features/admin/reels-editor";
+import { z } from "zod";
 export default async function Page({
   searchParams,
 }: {
@@ -27,6 +30,18 @@ async function ContentPage({
 }: {
   query: Record<string, string | undefined>;
 }) {
+  if (query.tab === "reels") {
+    const [reels, products] = await Promise.all([
+      adminGet("/content/reels", adminReelsSchema),
+      adminGet(
+        "/content/reels/options",
+        z.object({
+          data: z.array(z.object({ id: z.string(), name: z.string() })),
+        }),
+      ),
+    ]);
+    return <ReelsEditor rows={reels.data} products={products.data} />;
+  }
   const tab = ["homepage", "banners", "pages", "menus"].includes(
     query.tab ?? "",
   )
