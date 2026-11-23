@@ -38,28 +38,16 @@ import {
   PurchaseSteps,
 } from "@/components/storefront/purchase-ui";
 import { CheckoutPreview } from "./checkout-preview";
-export function CheckoutPage() {
+export function CheckoutPage({ couponsEnabled }: { couponsEnabled: boolean }) {
   const { cartRefs, cart, cartStatus, hydrated, restoreCartItems } =
     useStorefront();
   const router = useRouter();
   const [pin, setPin] = useState("");
+  const pinReady = pinCodeSchema.safeParse(pin).success;
   const [method, setMethod] = useState<"ONLINE" | "COD">("ONLINE");
   const [couponDraft, setCouponDraft] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [couponsEnabled, setCouponsEnabled] = useState(false);
-  useEffect(() => {
-    let active = true;
-    fetch("/api/v1/experience/settings", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((r) => {
-        if (active) setCouponsEnabled(r?.data?.coupons === true);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
   const [resolved, setResolved] = useState<{
     key: string;
     data?: CheckoutQuote;
@@ -747,7 +735,7 @@ export function CheckoutPage() {
                   <button
                     type="button"
                     className="experience-primary"
-                    disabled={busy || !couponDraft.trim()}
+                    disabled={busy || !couponDraft.trim() || !pinReady}
                     onClick={() => {
                       setCouponCode(couponDraft.trim().toUpperCase());
                       attempt.current = null;
@@ -756,10 +744,11 @@ export function CheckoutPage() {
                     Apply
                   </button>
                 </div>
+                {!pinReady && <small>Enter your delivery PIN code to apply a coupon.</small>}
                 {couponCode && (
                   <p>
                     <span role="status">
-                      {quote?.couponCode
+                      {!pinReady ? "Coupon awaiting delivery PIN" : quote?.couponCode
                         ? `Applied: ${quote?.couponCode}`
                         : resolved?.key === key && resolved.error
                           ? "Coupon could not be applied"

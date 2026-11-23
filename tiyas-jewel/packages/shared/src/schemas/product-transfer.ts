@@ -36,6 +36,7 @@ export const productTransferSchema = z
         featured: adminProductInputSchema.shape.featured,
         categorySlug: slugSchema,
         collectionSlugs: z.array(slugSchema).max(20),
+        tags: adminProductInputSchema.shape.tags,
         price: rupees,
         compareAtPrice: rupees.nullable(),
         details: productDetailsSchema
@@ -84,6 +85,7 @@ export const productTransferSchema = z
       featured: p.featured,
       categoryId: p.categorySlug,
       collectionIds: p.collectionSlugs,
+      tags: p.tags,
       pricePaise: rupeesToPaise(p.price),
       compareAtPaise:
         p.compareAtPrice === null ? null : rupeesToPaise(p.compareAtPrice),

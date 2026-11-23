@@ -190,16 +190,19 @@ test("guest checkout validates core fields and applies backend coupon totals", a
   expect(created.status()).toBe(200);
   await context.clearCookies();
   await page.goto(`/products/${f.slug}`);
+  await page.getByRole("link", { name: "Reviews & ratings" }).click();
+  await expect(page).toHaveURL(/#customer-reviews$/);
   await expect(
     page.getByRole("heading", { name: "QA Silver Statement Set", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Customer reviews", exact: true }),
+    page.getByRole("heading", { name: "Customer reviews & ratings", exact: true }),
   ).toBeVisible();
   await noOverflow(page);
   await capture(page, "product-reviews");
   await page.getByRole("button", { name: "Add to bag", exact: true }).click();
   await page.goto("/checkout");
+  await expect(page.getByLabel("Coupon code", { exact: true })).toBeVisible();
   await page.locator('[name="pinCode"]').fill("700001");
   await expect(
     page.getByRole("button", { name: "Continue to payment", exact: true }),
@@ -257,6 +260,31 @@ test("guest checkout validates core fields and applies backend coupon totals", a
     couponCode: code,
     totalPaise: 239000,
   });
+});
+
+test("homepage shops by matching occasion, collection, and jewellery type", async ({
+  page,
+  request,
+}) => {
+  const { slug } = fixtures();
+  const product = (await (await request.get(`/api/v1/products/${slug}`)).json()).data;
+  await page.goto("/");
+  await page.getByRole("link", { name: /Bridal Collection/ }).click();
+  await expect(page).toHaveURL(/\/shop\?tag=bridal$/);
+  await expect(page.locator(".results-count")).toHaveText("1 piece");
+  await expect(page.locator(".product-card h3").getByRole("link", { name: product.name })).toBeVisible();
+
+  await page.goto("/");
+  await page.locator(".tj-quick-collections").getByRole("link", { name: /Premium Kundan/ }).click();
+  await expect(page).toHaveURL(/\/collections\/premium-kundan\?match=catalog$/);
+  await expect(page.locator(".product-card h3").getByRole("link", { name: product.name })).toBeVisible();
+
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Jewellery types" })
+    .getByRole("link", { name: product.category.name, exact: true }).click();
+  await expect(page).toHaveURL(`/shop/${product.category.slug}`);
+  await expect(page.locator(".product-card h3").getByRole("link", { name: product.name })).toBeVisible();
+  await noOverflow(page);
 });
 
 test("CMS Instagram Reel link and shoppable product tags", async ({

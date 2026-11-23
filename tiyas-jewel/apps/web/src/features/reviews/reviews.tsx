@@ -163,12 +163,16 @@ export function ReviewForm({
     <form
       key={step}
       ref={formRef}
+      id={product ? "write-product-review" : "write-store-review"}
       className="experience-form"
       onSubmit={submit}
       aria-busy={busy}
     >
       <h3>{product ? "Review this piece" : "Share your Tiyas experience"}</h3>
-      <p>Your email stays private. Reviews appear after moderation.</p>
+      <p>
+        {product && "Use the email from your fulfilled order. "}
+        Your email stays private. Reviews appear after moderation.
+      </p>
       {step === "email" ? (
         <label>
           Email
@@ -354,16 +358,18 @@ export function Reviews({
           <p className="experience-eyebrow">Your stories, in your words</p>
           <h2 id="reviews-heading">
             {product
-              ? "Customer reviews"
+              ? "Customer reviews & ratings"
               : kind === "PRODUCT"
                 ? "Reviews of our jewellery"
                 : "Shopping with Tiyas"}
           </h2>
-          {data && (
-            <RatingSummary
-              average={data.summary.average}
-              count={data.summary.count}
-            />
+          {data && (data.summary.count > 0 ? (
+            <RatingSummary average={data.summary.average} count={data.summary.count} />
+          ) : (
+            <p className="experience-review-empty-label">No ratings yet</p>
+          ))}
+          {product && enabled && (
+            <a className="experience-text-button" href="#write-product-review">Write a review</a>
           )}
         </div>
         <div className="experience-filters">
@@ -462,9 +468,14 @@ export function Reviews({
           </button>
         </nav>
       )}
-      {enabled && (product || kind === "STORE") && (
+      {(product || kind === "STORE") && (enabled ? (
         <ReviewForm product={product} />
-      )}
+      ) : (
+        <div id={product ? "write-product-review" : "write-store-review"} className="experience-form">
+          <h3>{product ? "Review this piece" : "Share your Tiyas experience"}</h3>
+          <p>Review submissions are temporarily unavailable.</p>
+        </div>
+      ))}
       {!product && kind === "PRODUCT" && (
         <p>
           To review a piece, open its product page.{" "}

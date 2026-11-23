@@ -73,6 +73,7 @@ export function AdminProductForm({
     description: product?.description ?? "",
     categoryId: product?.categoryId ?? options.categories[0]?.id ?? "",
     collectionIds: product?.collectionIds ?? [],
+    tags: product?.tags?.join(", ") ?? "",
     price: product ? amountText(product.pricePaise) : "",
     compare: product?.compareAtPaise ? amountText(product.compareAtPaise) : "",
     sku: product?.sku ?? "",
@@ -120,11 +121,13 @@ export function AdminProductForm({
   >([]);
   const key = (i: FormImage) => i.id ?? i.assetId!;
   const fileName = (i: FormImage) => i.fileName ?? i.url.split("/").at(-1)!;
+  const tags = () => form.tags.split(",").map((entry) => entry.trim()).filter(Boolean);
   const guide = {
     instructions: [
       "Fill product fields and import this file. Nothing is saved until you save the product.",
       "Prices are INR rupee strings, not paise. Use null for an absent compareAtPrice, variant price or weightGrams.",
       "Use category/collection slugs from the lists below. Arrays can be empty when not needed.",
+      "Use product tags such as bridal, festive, everyday, party, gifting, wedding, office or traditional to control occasion listings.",
       "Upload image bytes separately; fileName must match the uploaded filename exactly, including case. Image order follows this array. Existing uploads are kept.",
       "Variant imageFileName must match an entry in product.images, or be null. On edit, retain variant SKU to preserve its identity; use the form to rename an existing SKU.",
     ],
@@ -164,6 +167,7 @@ export function AdminProductForm({
       categorySlug:
         options.categories.find((c) => c.id === form.categoryId)?.slug ?? "",
       collectionSlugs: [],
+      tags: [],
       price: "",
       compareAtPrice: null,
       sku: "",
@@ -189,6 +193,7 @@ export function AdminProductForm({
         name: form.name,
         slug: form.slug,
         description: form.description,
+        tags: tags(),
         collectionSlugs: options.collections
           .filter((c) => form.collectionIds.includes(c.id))
           .map((c) => c.slug),
@@ -264,6 +269,7 @@ export function AdminProductForm({
       description: p.description,
       categoryId: category.id,
       collectionIds: collections,
+      tags: p.tags?.join(", ") ?? form.tags,
       price: p.price,
       compare: p.compareAtPrice ?? "",
       sku: p.sku,
@@ -427,6 +433,7 @@ export function AdminProductForm({
               description: form.description,
               categoryId: form.categoryId,
               collectionIds: form.collectionIds,
+              tags: tags(),
               sku: form.sku,
               pricePaise: paise(form.price),
               compareAtPaise: form.compare ? paise(form.compare) : null,
@@ -564,6 +571,21 @@ export function AdminProductForm({
                   value={form.sku}
                   onChange={(e) => change("sku", e.target.value)}
                 />
+              </label>
+              <label className="admin-field-full">
+                Product tags
+                <input
+                  aria-describedby="product-tags-help"
+                  maxLength={1300}
+                  placeholder="bridal, wedding, premium-kundan"
+                  value={form.tags}
+                  onChange={(e) => change("tags", e.target.value)}
+                />
+                <small id="product-tags-help">
+                  Separate up to 20 tags with commas. Occasion cards match tags
+                  like bridal, festive, everyday, party, gifting, wedding,
+                  office and traditional. The category above sets the jewellery type.
+                </small>
               </label>
             </div>
             <fieldset className="admin-collections">

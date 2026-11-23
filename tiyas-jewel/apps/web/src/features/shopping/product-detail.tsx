@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Product } from "@tiyas/shared";
-import { ChevronLeft, ChevronRight, Expand, Heart } from "lucide-react";
+import { ArrowDown, ChevronLeft, ChevronRight, Expand, Heart } from "lucide-react";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { Modal } from "@/components/ui/modal";
 import { QuantitySelector } from "@/components/storefront/quantity-selector";
@@ -224,14 +224,12 @@ export function ProductDetail({
         <div className="product-information">
           <p className="eyebrow">The Tiyas edit / {product.category.name}</p>
           <h1>{product.name}</h1>
-          {product.ratingSummary && (
-            <a href="#customer-reviews">
-              <RatingSummary
-                average={product.ratingSummary.value}
-                count={product.ratingSummary.count}
-              />
-            </a>
-          )}
+          <a className="detail-review-link" href="#customer-reviews">
+            {product.ratingSummary ? (
+              <RatingSummary average={product.ratingSummary.value} count={product.ratingSummary.count} />
+            ) : "Reviews & ratings"}
+            <ArrowDown size={14} aria-hidden="true" />
+          </a>
           <div className="detail-price">
             {hasVariants && !selected ? <span>From </span> : null}
             {formatINR(price)}
@@ -374,6 +372,7 @@ export function ProductDetail({
           </div>
         </div>
       </div>
+      <Reviews product={{ id: product.id, slug: product.slug }} />
       {related.length ? (
         <section className="related-products">
           <p className="eyebrow">The considered pairing</p>
@@ -385,7 +384,6 @@ export function ProductDetail({
           </div>
         </section>
       ) : null}
-      <Reviews product={{ id: product.id, slug: product.slug }} />
     </div>
   );
 }

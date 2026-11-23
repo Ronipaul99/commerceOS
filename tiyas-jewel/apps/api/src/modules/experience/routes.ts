@@ -23,11 +23,8 @@ export async function experienceRoutes(
   app: FastifyInstance,
   options: { config: ApiConfig; email?: ReviewEmail; background?: boolean },
 ) {
-  const reviews = reviewService(
-      app.db,
-      options.config,
-      options.email ?? reviewEmail(options.config),
-    ),
+  const email = options.email ?? reviewEmail(options.config);
+  const reviews = reviewService(app.db, options.config, email),
     coupons = couponAdmin(app.db),
     auth = adminAuth(app, options.config);
   await app.register(rateLimit, { max: 90, timeWindow: "1 minute" });
@@ -61,7 +58,7 @@ export async function experienceRoutes(
   });
   app.get("/experience/settings", async () => ({
     data: {
-      reviews: options.config.REVIEWS_ENABLED,
+      reviews: options.config.REVIEWS_ENABLED && Boolean(options.config.REVIEW_OTP_SECRET) && email.available !== false,
       homepageReviews: options.config.HOMEPAGE_REVIEWS_ENABLED,
       coupons: options.config.COUPONS_ENABLED,
       reels: options.config.REELS_ENABLED,

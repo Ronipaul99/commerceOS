@@ -42,6 +42,7 @@ function toProduct(product: ProductRecord): Product {
     name: product.name,
     slug: product.slug,
     description: product.description,
+    tags: product.tags,
     details:
       product.details === null
         ? null
@@ -135,6 +136,8 @@ export function catalogRepository(db: PrismaClient, publicMedia = false) {
         limit,
         category,
         collection,
+        tag,
+        edit,
         featured,
         minPricePaise,
         maxPricePaise,
@@ -146,6 +149,15 @@ export function catalogRepository(db: PrismaClient, publicMedia = false) {
         ...publicProduct,
         AND: [
           ...(category ? [{ category: { slug: category } }] : []),
+          ...(tag ? [{ tags: { has: tag } }] : []),
+          ...(edit
+            ? [{
+                OR: [
+                  { tags: { has: edit } },
+                  { collections: { some: { collection: { slug: edit, active: true } } } },
+                ],
+              }]
+            : []),
           ...(collection
             ? [
                 {

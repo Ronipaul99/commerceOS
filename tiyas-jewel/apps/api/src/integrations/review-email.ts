@@ -2,10 +2,12 @@ import nodemailer from "nodemailer";
 import type { ApiConfig } from "../config/env.js";
 import { AdminError } from "../modules/admin/errors.js";
 export interface ReviewEmail {
+  available?: boolean;
   sendCode(email: string, code: string): Promise<void>;
 }
 export function reviewEmail(config: ApiConfig): ReviewEmail {
   return {
+    available: Boolean(config.SMTP_HOST && config.SMTP_USER && config.SMTP_PASSWORD && config.SMTP_FROM),
     async sendCode(email, code) {
       if (
         !config.SMTP_HOST ||

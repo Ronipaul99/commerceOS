@@ -22,6 +22,7 @@ it("composes defaults before the newsletter without changing existing CMS record
     "reels",
     "reviews",
     "newsletter",
+    "types",
   ]);
   expect(original.sections).toHaveLength(2);
 });
@@ -38,6 +39,12 @@ it("respects explicit disabled customer-experience sections", () => {
         id: "reviews",
         kind: "reviews",
         title: "Reviews",
+        enabled: false,
+      }),
+      contentSectionSchema.parse({
+        id: "types",
+        kind: "types",
+        title: "Jewellery types",
         enabled: false,
       }),
     ],

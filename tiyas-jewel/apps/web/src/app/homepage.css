@@ -2344,3 +2344,25 @@ html {
     font-size: 23px;
   }
 }
+.tj-type-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.tj-type-links a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 16px;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  text-decoration: none;
+}
+.tj-type-links a:hover {
+  border-color: currentColor;
+}

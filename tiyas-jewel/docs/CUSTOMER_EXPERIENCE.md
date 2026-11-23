@@ -4,12 +4,22 @@ Implemented from [the approved plan](CUSTOMER_EXPERIENCE_IMPLEMENTATION_PLAN.md)
 
 ## Delivered behavior
 
-- Product reviews: email-code verification, rating distribution, sorting, pagination, guest submission, draft-preserving retry and pending moderation. Only published product reviews contribute to product/card ratings.
-- Store feedback: separate aggregate scope, CMS-curated homepage rail, truthful empty states and `/happy-customers` with feedback filters and paginated consented stories. Stories can link real catalog products. Empty homepage sections remain hidden.
+- Product reviews: the product page links directly to ratings and reviews. Completed orders link each piece to its review form. Only published product reviews contribute to product and card ratings.
+- Store feedback: the homepage links to the email-verified feedback form at `/happy-customers#write-store-review`. The page has separate feedback filters and paginated consented stories. The homepage displays published feedback when available.
 - Administration: OWNER/ADMIN moderation and stories at `/admin/reviews`; coupon list/create/edit at `/admin/coupons`; CMS reel management on `/admin/content?tab=reels`. Existing sessions, CSRF checks, action overlay and responsive shell are reused. CONTENT_MANAGER can manage reels and select approved content but cannot moderate reviews or manage coupons.
-- Checkout: mandatory normalized guest identity/address, coupon apply/remove/error feedback and authoritative backend totals. Order confirmations, receipts and admin totals retain persisted discount snapshots.
+- Checkout: when `COUPONS_ENABLED=true`, the order column displays a coupon field on first render. Enter a delivery PIN before applying a code. Order confirmations, receipts and admin totals retain the backend-calculated discount.
 - Reels: CMS-managed Instagram Reel links and optimized posters. The shop-the-look dialog shows real catalog products and a Watch on Instagram link that opens in a new tab. Published entries require a valid Reel link, poster, rights confirmation, visual description or transcript, and at least one active product.
 - Images: WebP master plus non-upscaled 160/320/480/640/960/1440/1920-width renditions, responsive source selection, ownership-scoped deduplication and reference-safe deletion. Original image URLs remain usable.
+
+## Product tags and homepage navigation
+
+Create or edit a product and enter up to 20 comma-separated tags. Product JSON import and export support a `tags` array. Tags are lowercase slugs. Spaces become hyphens and duplicates are removed. Older imports and API updates may omit tags to preserve existing values. Save an empty list to clear them.
+
+- **Shop by Category** matches exact collection membership or a tag with the collection slug, such as `premium-kundan`.
+- **Shop by Occasion** matches `bridal`, `festive`, `everyday`, `party`, `gifting`, `wedding`, `office` or `traditional`. An occasion card can target a different tag using its CMS link, such as `/shop?tag=wedding-guest`.
+- **Shop by Type** lists the active jewellery categories. These links filter by the selected product category.
+
+Existing product tags start empty. Assign an occasion tag to each appropriate product. Collection membership and product categories continue to work with existing assignments.
 
 The schema uses one `CustomerReview` table with explicit PRODUCT/STORE subject keys rather than two otherwise identical review tables. Constraints, verification grants, queries and aggregates keep the subjects separate. Customer stories currently have one optional cover image each; anonymous media submission and automatic feedback invitation emails remain deferred.
 
@@ -17,7 +27,9 @@ Reel posters use the existing image storage adapter. The site stores only a cano
 
 ## Security and lifecycle
 
-Review codes expire after ten minutes, permit five attempts and have a sixty-second resend cooldown plus request-rate limits. Submission grants are short-lived, subject-bound and single-use; identical successful retries are idempotent. Email verification proves control of an address, not a purchase. The purchase badge requires an accepted paid online order or a manually completed COD order. Public responses omit email, identity hashes, order associations and consent evidence. Rejected/unpublished feedback and stories are not resolved from stale CMS snapshots.
+Review codes expire after ten minutes, permit five attempts and have a sixty-second resend cooldown plus request-rate limits. Submission grants are short-lived, subject-bound and single-use. Identical successful retries are idempotent. Product review submission requires the email from an accepted, completed order that contains the product. Online orders must be paid. Completed status is the store's manual fulfillment record. General store feedback requires a verified email. Public responses omit email, identity hashes, order associations and consent evidence.
+
+Real verification email requires `REVIEWS_ENABLED=true`, a private `REVIEW_OTP_SECRET` and working `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD` and `SMTP_FROM` settings. Set `SMTP_PORT` and `SMTP_SECURE` to match the mail service and restart Fastify. The storefront displays a submission availability message while mail setup is incomplete.
 
 With background processing enabled, verification challenges expired for more than 24 hours are removed in bounded batches. Review/story retention and consent withdrawal require the owner's policy: unpublish first and remove references before deleting media. Customer portraits remain `no-store`. The mixed legacy upload route uses `private, no-store`. The opt-in CDN gateway serves content-hashed public product/CMS media with bounded browser and edge TTLs and publication revocation. See the [CDN activation runbook](CDN_ACTIVATION_RUNBOOK.md). No one-year immutable policy is applied to revocable content.
 

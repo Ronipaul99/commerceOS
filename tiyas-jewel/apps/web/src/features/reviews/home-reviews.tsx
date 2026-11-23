@@ -34,18 +34,22 @@ export async function HomeReviews({
         : all.slice(0, 6);
     })
     .catch(() => []);
-  if (!items.length) return null;
   return (
     <section className="tj-shell tj-home-section experience-home-reviews">
       <div className="experience-section-heading">
-        <h2>{title}</h2>
-        <Link href="/happy-customers">Meet our happy customers &rarr;</Link>
+        <h2>{items.length ? title : "Share your Tiyas experience"}</h2>
+        <div className="experience-home-links">
+          {items.length > 0 && <Link href="/happy-customers">Meet our happy customers &rarr;</Link>}
+          <Link className="tj-button tj-button-burgundy" href="/happy-customers#write-store-review">Write a store review</Link>
+        </div>
       </div>
-      <ProductRail label="Customer experiences">
-        {items.map((r) => (
-          <ReviewCard key={r.id} review={r} />
-        ))}
-      </ProductRail>
+      {items.length > 0 && (
+        <ProductRail label="Customer experiences">
+          {items.map((r) => (
+            <ReviewCard key={r.id} review={r} />
+          ))}
+        </ProductRail>
+      )}
     </section>
   );
 }

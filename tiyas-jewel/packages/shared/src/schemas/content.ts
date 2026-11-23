@@ -52,6 +52,7 @@ export const contentSectionKinds = [
   "arrivals",
   "campaign",
   "occasions",
+  "types",
   "showcases",
   "promotion",
   "trust",

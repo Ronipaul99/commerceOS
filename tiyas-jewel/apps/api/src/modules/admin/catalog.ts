@@ -19,6 +19,7 @@ function view(p: RecordProduct) {
     name: p.name,
     slug: p.slug,
     description: p.description,
+    tags: p.tags,
     details: p.details === null ? null : productDetailsSchema.parse(p.details),
     categoryId: p.categoryId,
     category: {
@@ -223,6 +224,7 @@ export function adminCatalog(db: PrismaClient, storage: ImageStorage) {
           name: input.name,
           slug: input.slug,
           description: input.description,
+          ...(input.tags !== undefined ? { tags: input.tags } : {}),
           ...(input.details !== undefined
             ? {
                 details: input.details === null ? Prisma.DbNull : input.details,

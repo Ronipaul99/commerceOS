@@ -195,7 +195,14 @@ async function place(
   });
   return { service, input, token, order: await service.place(input), q };
 }
-async function feedback(kind: "PRODUCT" | "STORE" = "PRODUCT") {
+async function fulfillProductOrder() {
+  const p = await place();
+  await app.db.order.updateMany({
+    where: { orderNumber: p.order.orderNumber },
+    data: { operationalStatus: "COMPLETED", completedAt: new Date() },
+  });
+}
+async function feedback(kind: "PRODUCT" | "STORE" = "PRODUCT", expected = 200) {
   const requested = await app.inject({
     method: "POST",
     url: "/api/v1/reviews/challenges",
@@ -229,11 +236,56 @@ async function feedback(kind: "PRODUCT" | "STORE" = "PRODUCT") {
         : "/api/v1/store-reviews",
     payload,
   });
-  expect(response.statusCode).toBe(200);
-  reviews.push(response.json().data.id);
-  return { id: response.json().data.id as string, payload };
+  expect(response.statusCode).toBe(expected);
+  const id = response.json().data?.id as string;
+  if (id) reviews.push(id);
+  return { id, payload, error: response.json().error?.code };
 }
 describe("customer experience and commerce guarantees", () => {
+  it("persists normalized admin tags and matches exact tags with jewellery type", async () => {
+    const original = await app.db.product.findUniqueOrThrow({
+      where: { id: product.id },
+      include: { category: true },
+    });
+    const payload = {
+      name: original.name,
+      slug: original.slug,
+      description: original.description,
+      categoryId: original.categoryId,
+      collectionIds: [],
+      tags: [" Wedding Guest ", "wedding-guest"],
+      pricePaise: original.pricePaise,
+      compareAtPaise: null,
+      sku: product.slug.toUpperCase(),
+      stockQuantity: original.stockQuantity,
+      featured: false,
+      active: true,
+      images: [],
+      variants: [],
+    };
+    const save = (body: object) => app.inject({
+      method: "PUT",
+      url: `/api/v1/admin/products/${product.id}`,
+      headers: headers(),
+      payload: body,
+    });
+    const saved = await save({ ...payload, version: original.updatedAt.toISOString() });
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json().data.tags).toEqual(["wedding-guest"]);
+    const { tags: _tags, ...legacy } = payload;
+    expect((await save({ ...legacy, version: saved.json().data.version })).json().data.tags)
+      .toEqual(["wedding-guest"]);
+    for (const [query, includes] of [
+      [`tag=wedding-guest&category=${original.category.slug}`, true],
+      ["tag=wedding", false],
+      ["tag=wedding-guest&category=other-type", false],
+      ["edit=wedding-guest", true],
+    ] as const) {
+      const response = await app.inject(`/api/v1/products?${query}&ids=${product.id}`);
+      expect(response.statusCode).toBe(200);
+      expect(response.json().pagination.total).toBe(includes ? 1 : 0);
+    }
+  });
   it("deduplicates bytes within an uploader without sharing permissions or deleting another upload", async () => {
     const buffer = await sharp({
       create: { width: 800, height: 900, channels: 3, background: "#a67c4f" },
@@ -322,12 +374,13 @@ describe("customer experience and commerce guarantees", () => {
     ).toBe(1);
     await place(c.code);
   });
-  it("requires fulfilled COD before a verified-purchase badge", async () => {
-    const p = await place();
-    await app.db.order.updateMany({
-      where: { orderNumber: p.order.orderNumber },
-      data: { operationalStatus: "COMPLETED", completedAt: new Date() },
-    });
+  it("requires a fulfilled product order before accepting a verified review", async () => {
+    await place();
+    const pending = await feedback("PRODUCT", 422);
+    expect(pending.error).toBe("REVIEW_ORDER_REQUIRED");
+  });
+  it("accepts reviews for fulfilled COD orders", async () => {
+    await fulfillProductOrder();
     const f = await feedback();
     expect(
       (await app.db.customerReview.findUniqueOrThrow({ where: { id: f.id } }))
@@ -630,6 +683,7 @@ describe("customer experience and commerce guarantees", () => {
     expect(await app.db.order.count({ where: { customerEmail } })).toBe(0);
   });
   it("publishes only moderated reviews and never exposes customer email/grant", async () => {
+    await fulfillProductOrder();
     const f = await feedback();
     let list = await app.inject({
       url: `/api/v1/products/${product.slug}/reviews`,
@@ -658,9 +712,10 @@ describe("customer experience and commerce guarantees", () => {
     });
     expect(list.body).not.toContain(customerEmail);
     expect(list.body).not.toContain(f.payload.grant);
-    expect(list.json().data.items[0].verifiedPurchase).toBe(false);
+    expect(list.json().data.items[0].verifiedPurchase).toBe(true);
   });
   it("makes repeated review submission idempotent and rejects altered replay", async () => {
+    await fulfillProductOrder();
     const f = await feedback();
     const again = await app.inject({
       method: "POST",

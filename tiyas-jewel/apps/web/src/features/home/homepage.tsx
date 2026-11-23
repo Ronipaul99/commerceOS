@@ -27,6 +27,7 @@ import {
   NewArrivals,
 } from "./home-catalog";
 import { HomeMotion } from "./home-motion";
+import { categoryHref, ShopByType } from "./shop-by-type";
 function HomeSectionHeading({
   title,
   description,
@@ -125,7 +126,7 @@ export function Homepage() {
       <section
         className="tj-shell tj-quick-collections"
         id="quick-collections"
-        aria-label="Explore eight jewellery collections"
+        aria-label="Shop by Category"
       >
         <ProductRail
           label="Jewellery collection thumbnails"
@@ -134,7 +135,7 @@ export function Homepage() {
           {campaignCollections.map((c) => (
             <Link
               key={c.slug}
-              href={`/collections/${c.slug}`}
+              href={categoryHref(`/collections/${c.slug}`)}
               className="tj-quick-category"
             >
               <div>
@@ -280,6 +281,10 @@ export function Homepage() {
             </Link>
           ))}
         </div>
+      </section>
+      <section className="tj-shell tj-home-section" aria-labelledby="types-title">
+        <HomeSectionHeading id="types-title" title="Shop by Type" description="" />
+        <Suspense fallback={null}><ShopByType /></Suspense>
       </section>
       <div id="collection-showcases">
         <Suspense

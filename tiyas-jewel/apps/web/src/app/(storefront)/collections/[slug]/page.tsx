@@ -26,7 +26,7 @@ export default async function Page({
             slug: campaign.slug,
             name: campaign.name,
             description:
-              "This collection is being curated. The pieces below are from our current Tiyas edit.",
+              "Discover jewellery in the Tiyas collections.",
           },
         };
       }

@@ -250,6 +250,11 @@ export function ConfirmationPage({
                           )}
                         </p>
                         {item.concept && <small>Concept image</small>}
+                        {order.operationalStatus === "COMPLETED" && (
+                          <Link className="experience-text-button" href={`/products/${item.slug}#write-product-review`}>
+                            Review this piece
+                          </Link>
+                        )}
                       </div>
                       <strong>{formatINR(item.lineTotalPaise)}</strong>
                     </li>

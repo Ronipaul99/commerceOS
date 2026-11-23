@@ -57,7 +57,7 @@ export function reviewService(
         "Review submissions are not available yet.",
         503,
       );
-    if (!config.REVIEW_OTP_SECRET)
+    if (!config.REVIEW_OTP_SECRET || email.available === false)
       throw new AdminError(
         "EMAIL_UNAVAILABLE",
         "Review verification is not configured.",
@@ -223,6 +223,7 @@ export function reviewService(
           order: {
             customerEmail: c.email,
             accepted: true,
+            ...(productId ? { operationalStatus: "COMPLETED" } : {}),
             OR: [
               { paymentMethod: "ONLINE", paymentStatus: "PAID" },
               { paymentMethod: "COD", operationalStatus: "COMPLETED" },
@@ -232,6 +233,12 @@ export function reviewService(
         select: { id: true },
         orderBy: { id: "asc" },
       });
+      if (productId && !purchase)
+        throw new AdminError(
+          "REVIEW_ORDER_REQUIRED",
+          "You can review this piece after fulfillment. Use the email from your order.",
+          422,
+        );
       const data = {
         kind: productId ? "PRODUCT" : "STORE",
         subjectKey: c.subjectKey,

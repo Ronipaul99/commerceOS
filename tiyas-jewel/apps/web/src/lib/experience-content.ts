@@ -3,7 +3,7 @@ import {
   type HomepageContent,
   type ContentSection,
 } from "@tiyas/shared";
-/** Existing published CMS documents gain empty-hidden defaults without rewriting their snapshots. */
+/** Add new storefront sections to older CMS documents without rewriting their snapshots. */
 export function withExperienceSections(
   content: HomepageContent,
 ): HomepageContent {
@@ -28,9 +28,21 @@ export function withExperienceSections(
       }),
     );
   }
-  if (!extra.length) return content;
+  if (!extra.length && present.has("types")) return content;
   const sections = [...content.sections],
     index = sections.findIndex((s) => s.kind === "newsletter");
   sections.splice(index < 0 ? sections.length : index, 0, ...extra);
+  if (!present.has("types")) {
+    let id = "auto-types";
+    while (ids.has(id)) id += "-extra";
+    const occasionIndex = sections.findIndex((s) => s.kind === "occasions");
+    const position = occasionIndex < 0 ? sections.length : occasionIndex + 1;
+    sections.splice(position, 0, contentSectionSchema.parse({
+      id,
+      kind: "types",
+      title: "Shop by Type",
+      href: "/shop",
+    }));
+  }
   return { ...content, sections };
 }

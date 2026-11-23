@@ -7,6 +7,17 @@ export const slugSchema = z
   .max(120)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 export const moneyPaiseSchema = z.number().int().min(0).max(2_147_483_647);
+export const productTagSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(64)
+  .transform((value) => value.replace(/\s+/g, "-"))
+  .pipe(slugSchema.max(64));
+export const productTagsSchema = z
+  .array(productTagSchema)
+  .max(20)
+  .transform((tags) => [...new Set(tags)]);
 export const productParamsSchema = z.object({ slug: slugSchema }).strict();
 export const paginationQuerySchema = z
   .object({
@@ -72,6 +83,7 @@ export const productSchema = z.object({
   slug: slugSchema,
   description: z.string(),
   details: productDetailsSchema.nullable().optional(),
+  tags: productTagsSchema.optional(),
   pricePaise: moneyPaiseSchema,
   compareAtPaise: moneyPaiseSchema.nullable().optional(),
   sku: z.string().nullable().optional(),

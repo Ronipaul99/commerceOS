@@ -23,6 +23,7 @@ import { previewSections } from "@/lib/content-preview";
 import { withExperienceSections } from "@/lib/experience-content";
 import { HomeReviews } from "@/features/reviews/home-reviews";
 import { HomeReels } from "@/features/reels/home-reels";
+import { categoryHref, occasionHref, ShopByType } from "./shop-by-type";
 function Heading({ section: s }: { section: ContentSection }) {
   return (
     <header className="tj-section-heading">
@@ -297,7 +298,7 @@ function Section({ section: s }: { section: ContentSection }) {
       <section className="tj-shell tj-quick-collections" aria-label={s.title}>
         <ProductRail label={s.title} className="tj-category-rail">
           {items.map((i) => (
-            <Link key={i.id} href={i.href} className="tj-quick-category">
+            <Link key={i.id} href={categoryHref(i.href)} className="tj-quick-category">
               <div>
                 {i.image && (
                   <ResponsiveImage
@@ -329,10 +330,12 @@ function Section({ section: s }: { section: ContentSection }) {
             <ArrowRight size={16} />
           </Link>
         </>
+      ) : s.kind === "types" ? (
+        <Suspense fallback={null}><ShopByType /></Suspense>
       ) : s.kind === "occasions" ? (
         <div className="tj-occasion-grid">
           {items.map((i) => (
-            <Link key={i.id} className="tj-occasion-card" href={i.href}>
+            <Link key={i.id} className="tj-occasion-card" href={occasionHref(i.title, i.href)}>
               <div className="tj-occasion-image">
                 {i.image && (
                   <ResponsiveImage

@@ -43,6 +43,29 @@
 .experience-rating span {
   color: #776a64;
 }
+.detail-review-link,
+.experience-home-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.detail-review-link {
+  width: fit-content;
+  color: #650f2a;
+  font-size: 13px;
+  padding-block: 5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.experience-review-empty-label {
+  color: #776a64;
+  font-size: 13px;
+  margin-block: 5px;
+}
+.experience-form[id] {
+  scroll-margin-top: 110px;
+}
 .experience-review-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -311,9 +334,15 @@
   color: #27643a;
 }
 .experience-coupon {
-  border-top: 1px solid #eadbd4;
-  padding-top: 16px;
-  margin: 14px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: var(--background);
+}
+.experience-coupon label {
+  color: var(--accent);
+  font-weight: 600;
 }
 .experience-coupon > div {
   display: flex;
@@ -323,6 +352,14 @@
 .experience-coupon p {
   display: flex;
   justify-content: space-between;
+  gap: 10px;
+  overflow-wrap: anywhere;
+}
+.experience-coupon input {
+  min-width: 0;
+}
+.experience-coupon small {
+  color: var(--text-secondary);
 }
 .experience-coupon button {
   white-space: nowrap;

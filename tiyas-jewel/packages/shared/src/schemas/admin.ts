@@ -4,6 +4,7 @@ import {
   paginationQuerySchema,
   categorySchema,
   productDetailsSchema,
+  productTagsSchema,
 } from "./catalog.js";
 import { addressSchema, orderLineSchema, totalsSchema } from "./checkout.js";
 
@@ -59,6 +60,7 @@ export const adminProductInputSchema = z
     name: z.string().trim().min(1).max(200),
     slug: slugSchema,
     description: z.string().trim().min(1).max(10000),
+    tags: productTagsSchema.optional(),
     details: productDetailsSchema.nullable().optional(),
     categoryId: id,
     collectionIds: z.array(id).max(20),
@@ -149,6 +151,7 @@ export const adminProductSchema = z.object({
   categoryId: id,
   category: categorySchema.extend({ active: z.boolean() }),
   collectionIds: z.array(id),
+  tags: productTagsSchema.optional(),
   pricePaise: z.number().int(),
   compareAtPaise: z.number().int().nullable(),
   sku: z.string().nullable(),

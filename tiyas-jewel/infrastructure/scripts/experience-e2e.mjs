@@ -172,6 +172,7 @@ async function serve() {
   const product = await app.db.product.create({
     data: {
       name: "QA Silver Statement Set",
+      tags: ["bridal", "premium-kundan"],
       slug: `cx-browser-${suffix}`,
       description: "Isolated browser fixture, never a live catalog record.",
       pricePaise: 249000,

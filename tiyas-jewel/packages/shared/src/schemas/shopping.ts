@@ -5,12 +5,15 @@ import {
   moneyPaiseSchema,
   paginationQuerySchema,
   productSchema,
+  productTagSchema,
   slugSchema,
 } from "./catalog.js";
 export const catalogQuerySchema = paginationQuerySchema
   .extend({
     category: slugSchema.optional(),
     collection: slugSchema.optional(),
+    tag: productTagSchema.optional(),
+    edit: slugSchema.optional(),
     minPricePaise: z.coerce.number().int().min(0).max(2147483647).optional(),
     maxPricePaise: z.coerce.number().int().min(0).max(2147483647).optional(),
     availability: z.enum(["in-stock", "out-of-stock"]).optional(),

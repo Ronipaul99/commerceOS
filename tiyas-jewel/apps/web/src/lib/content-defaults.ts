@@ -113,6 +113,7 @@ export function defaultHomepage(): ContentValue {
             }),
           ),
         }),
+        section("types", "types", { title: "Shop by Type" }),
         section("showcases", "showcases", {
           title: "Collection Showcases",
           items: [0, 1, 4, 5].map((i) => {

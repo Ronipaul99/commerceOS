@@ -63,6 +63,7 @@ export function CatalogPage({
       "page",
       "limit",
       "category",
+      "tag",
       "minPricePaise",
       "maxPricePaise",
       "availability",
@@ -71,7 +72,9 @@ export function CatalogPage({
     ].flatMap((key) => (params.has(key) ? [[key, params.get(key)!]] : [])),
   );
   if (categorySlug) query.category = categorySlug;
-  if (collection && !previewCollection) query.collection = collection.slug;
+  const matchingCollection = collection && params.get("match") === "catalog";
+  if (matchingCollection) query.edit = collection.slug;
+  else if (collection && !previewCollection) query.collection = collection.slug;
   if (!query.limit) query.limit = "12";
   const key = new URLSearchParams(query).toString();
   const [result, setResult] = useState<{
@@ -151,12 +154,15 @@ export function CatalogPage({
   const editorialInGrid = ["american-diamond", "temple-jewellery"].includes(
     design.slug,
   );
-  const title = collection?.name ?? category?.name ?? design.headline;
-  const clearHref = collection ? `/collections/${collection.slug}` : "/shop";
+  const tagLabel = query.tag?.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+  const title = collection?.name ?? category?.name ?? tagLabel ?? design.headline;
+  const clearHref = collection
+    ? `/collections/${collection.slug}${matchingCollection ? "?match=catalog" : ""}`
+    : "/shop";
   const selectedDesign = collectionDesigns.find(
     (d) => d.slug === collection?.slug,
   );
-  const allCollections = !collection && !categorySlug && !category;
+  const allCollections = !collection && !categorySlug && !category && !tagLabel;
   const categoryPhotos: Record<string, string> = {
     earrings: editorialAssets.hoops,
     necklaces: editorialAssets.pendant,
@@ -171,6 +177,7 @@ export function CatalogPage({
     return `${collection ? pathname : "/shop"}${next.size ? `?${next}` : ""}`;
   }
   const activeFilters = [
+    ...(tagLabel ? [{ key: "tag", label: tagLabel }] : []),
     ...(query.category
       ? [{ key: "category", label: category?.name ?? query.category }]
       : []),
@@ -463,7 +470,7 @@ export function CatalogPage({
                 ))}
               </nav>
             )}
-            {previewCollection && (
+            {previewCollection && !matchingCollection && (
               <p className="tj-preview-note">
                 <strong>More from Tiyas</strong> &mdash; current catalogue
                 pieces, not an assigned {collection?.name} assortment yet.
@@ -489,7 +496,7 @@ export function CatalogPage({
                 <h2>
                   {allCollections
                     ? "All Collections"
-                    : (category?.name ?? collection?.name ?? "The Tiyas edit")}
+                    : (category?.name ?? collection?.name ?? tagLabel ?? "The Tiyas edit")}
                 </h2>
                 <p className="results-count" role="status">
                   {data
@@ -661,18 +668,13 @@ export function CatalogPage({
               </>
             ) : (
               <div className="shopping-empty">
-                <h2>A different form, perhaps.</h2>
-                <p>
-                  No pieces match this edit. Try a wider price range or another
-                  category.
-                </p>
+                <h2>No pieces match this edit yet</h2>
+                <p>Try a wider price range or explore another edit.</p>
                 <Link
                   className="button button-primary"
-                  href={
-                    collection ? `/collections/${collection.slug}` : "/shop"
-                  }
+                  href={matchingCollection && !activeFilters.length ? "/shop" : clearHref}
                 >
-                  Clear the filters
+                  {matchingCollection && !activeFilters.length ? "Explore all jewellery" : "Clear the filters"}
                 </Link>
               </div>
             )}

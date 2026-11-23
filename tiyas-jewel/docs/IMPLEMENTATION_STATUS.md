@@ -1,5 +1,12 @@
 # Implementation status
 
+## Storefront coupons, reviews and product discovery - 23 November 2026
+
+- Enabled checkout coupons in the local configuration. Checkout renders the coupon field with its server settings and explains the delivery PIN requirement. Fastify continues to validate coupons and calculate discounts.
+- Added a product-page ratings link, a review link for each item in a completed order, and a homepage link to the store feedback form. Product submission requires a verified email from a matching accepted and completed order. Submitted feedback remains pending moderation. The local review secret and feature switches are configured. The running API reports review submission as unavailable because SMTP is missing.
+- Added normalized product tags to the admin form, product JSON, and catalogue filters. Homepage category cards match collection assignments or the same tag. Occasion cards match the configured tag, and Shop by Type uses active jewellery categories. Verified a database backup and applied the single additive tag migration. All 16 existing products, three orders and one admin remained. Existing products have no tags yet.
+- Type checks, lint, 127 unit tests, 21 focused PostgreSQL integration tests and ten desktop/mobile Playwright tests passed. The browser tests used an isolated database and a test email transport. A second browser check against the running storefront verified the homepage sections, product reviews area and coupon field at 390px and 1440px without overflow or page errors. Live verification email has not been exercised.
+
 ## Admin Coupons and Customer Reviews availability - 23 November 2026
 
 - The running Fastify process predated the customer experience routes, and the configured store database was four migrations behind. Verified a private PostgreSQL backup, applied the four pending migrations with `prisma migrate deploy`, and restarted the local Fastify service on port 4000 from the current build. Product, order and admin counts matched before and after the migration.
