@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "expo/tsconfig.base",
+    "@businessos/config/tsconfig.base.json"
+  ],
+  "include": [
+    "app/**/*.tsx"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "extends": "@businessos/config/tsconfig.web.json",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
+}

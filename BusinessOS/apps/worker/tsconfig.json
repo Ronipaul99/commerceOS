@@ -1,0 +1,10 @@
+{
+  "extends": "@businessos/config/tsconfig.backend.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

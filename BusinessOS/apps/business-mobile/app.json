@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "BusinessOS",
+    "slug": "businessos",
+    "scheme": "businessos",
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
