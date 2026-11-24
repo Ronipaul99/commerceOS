@@ -1,0 +1,188 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../dist/fixture-client"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tenant {
+  id        String   @id @db.Uuid
+  label     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  version   Int      @default(1)
+  branches  Branch[]
+  outbox    OutboxEvent[]
+
+  @@map("fixture_tenant")
+}
+
+model Branch {
+  id        String             @id @db.Uuid
+  tenantId  String             @map("tenant_id") @db.Uuid
+  code      String
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  version   Int                @default(1)
+  tenant    Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  probes    TransactionProbe[]
+  outbox    OutboxEvent[]
+  files     FileObject[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, code])
+  @@map("fixture_branch")
+}
+
+model TransactionProbe {
+  id                     String   @id @db.Uuid
+  tenantId               String   @map("tenant_id") @db.Uuid
+  branchId               String   @map("branch_id") @db.Uuid
+  sourceKey              String   @map("source_key")
+  requestFingerprint     String   @map("request_fingerprint")
+  currencyCode           String   @map("currency_code") @db.VarChar(3)
+  amountMinor            BigInt   @map("amount_minor")
+  quantity               Decimal  @db.Decimal(20, 6)
+  fixturePolicyKey       String   @map("fixture_policy_key")
+  policySnapshotRevision Int      @map("policy_snapshot_revision")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  version                Int      @default(1)
+  branch                 Branch   @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Restrict, onUpdate: Restrict)
+  projections            OutboxProjection[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, branchId, id], map: "fixture_transaction_probe_scope_key")
+  @@unique([tenantId, branchId, sourceKey])
+  @@map("fixture_transaction_probe")
+}
+
+model OutboxEvent {
+  eventId          String   @id @map("event_id") @db.Uuid
+  tenantId         String   @map("tenant_id") @db.Uuid
+  branchId         String?  @map("branch_id") @db.Uuid
+  eventType        String   @map("event_type")
+  schemaVersion    Int      @map("schema_version")
+  aggregateType    String   @map("aggregate_type")
+  aggregateId      String   @map("aggregate_id") @db.Uuid
+  aggregateVersion Int      @map("aggregate_version")
+  occurredAt       DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  correlationId    String   @map("correlation_id") @db.Uuid
+  causationId      String   @map("causation_id") @db.Uuid
+  payload          Json
+  consumer         String
+  state            String   @default("READY")
+  nextAttemptAt    DateTime @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  leaseToken       String?  @map("lease_token") @db.Uuid
+  leaseUntil       DateTime? @map("lease_until") @db.Timestamptz(6)
+  generation       Int      @default(1)
+  dispatchAttempts Int      @default(0) @map("dispatch_attempts")
+  attemptsUsed     Int      @default(0) @map("attempts_used")
+  proofDigest      String?  @map("proof_digest")
+  proofExpiresAt   DateTime? @map("proof_expires_at") @db.Timestamptz(6)
+  updatedAt        DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  branch           Branch?  @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Restrict, onUpdate: Restrict)
+  receipts         InboxDedupe[]
+  failures         JobFailure[]
+  projections      OutboxProjection[]
+
+  @@unique([tenantId, eventId])
+  @@unique([tenantId, branchId, eventId], map: "outbox_events_scope_key")
+  @@unique([tenantId, aggregateType, aggregateId, aggregateVersion], map: "outbox_events_stream_version_key")
+  @@index([consumer, state, nextAttemptAt, eventId], map: "outbox_events_dispatch_idx")
+  @@index([consumer, state, leaseUntil], map: "outbox_events_lease_idx")
+  @@index([tenantId, branchId, occurredAt, eventId], map: "outbox_events_operator_idx")
+  @@map("outbox_events")
+}
+
+model InboxDedupe {
+  consumer    String
+  eventId     String   @map("event_id") @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  completedAt DateTime @default(now()) @map("completed_at") @db.Timestamptz(6)
+  effectRef   String?  @map("effect_ref") @db.Uuid
+  event       OutboxEvent @relation(fields: [tenantId, eventId], references: [tenantId, eventId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([consumer, eventId])
+  @@map("inbox_dedupes")
+}
+
+model JobFailure {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  eventId    String   @map("event_id") @db.Uuid
+  consumer   String
+  generation Int
+  kind       String
+  reason     String
+  recordedAt DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
+  operatorId String?  @map("operator_id")
+  requestKey String?  @map("request_key")
+  auditRef   String?  @map("audit_ref") @db.Uuid
+  event      OutboxEvent @relation(fields: [tenantId, eventId], references: [tenantId, eventId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([eventId, consumer, generation, kind], map: "job_failures_generation_kind_key")
+  @@unique([tenantId, consumer, requestKey], map: "job_failures_request_key")
+  @@index([tenantId, eventId, generation], map: "job_failures_event_history_idx")
+  @@map("job_failures")
+}
+
+model OutboxProjection {
+  eventId    String   @id @map("event_id") @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  branchId   String   @map("branch_id") @db.Uuid
+  probeRef   String   @map("probe_ref") @db.Uuid
+  appliedAt  DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
+  event      OutboxEvent @relation(fields: [tenantId, branchId, eventId], references: [tenantId, branchId, eventId], onDelete: Restrict, onUpdate: Restrict)
+  probe      TransactionProbe @relation(fields: [tenantId, branchId, probeRef], references: [tenantId, branchId, id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("fixture_outbox_projection")
+}
+
+model FileObject {
+  id              String   @id @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  branchId        String   @map("branch_id") @db.Uuid
+  ownerId         String   @map("owner_id") @db.VarChar(128)
+  requestKey      String   @map("request_key") @db.VarChar(128)
+  filename        String   @db.VarChar(100)
+  mediaType       String   @map("media_type")
+  sizeBytes       Int      @map("size_bytes")
+  digest          String?  @db.Char(64)
+  state           String   @default("INTENT")
+  version         Int      @default(1)
+  uploadExpiresAt DateTime @map("upload_expires_at") @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  branch          Branch   @relation(fields: [tenantId, branchId], references: [tenantId, id], onDelete: Restrict, onUpdate: Restrict)
+  job             FileJob?
+
+  @@unique([tenantId, branchId, id], map: "file_objects_scope_key")
+  @@unique([tenantId, branchId, ownerId, requestKey], map: "file_objects_request_key")
+  @@map("file_objects")
+}
+
+model FileJob {
+  id            String   @id @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  branchId      String   @map("branch_id") @db.Uuid
+  fileId        String   @map("file_id") @db.Uuid
+  correlationId String   @map("correlation_id") @db.Uuid
+  state         String   @default("QUEUED")
+  version       Int      @default(1)
+  generation    Int      @default(0)
+  nextAttemptAt DateTime @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  leaseUntil    DateTime? @map("lease_until") @db.Timestamptz(6)
+  failure       String?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  file          FileObject @relation(fields: [tenantId, branchId, fileId], references: [tenantId, branchId, id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([tenantId, branchId, fileId], map: "file_jobs_file_key")
+  @@index([state, nextAttemptAt, id], map: "file_jobs_claim_idx")
+  @@index([state, leaseUntil, id], map: "file_jobs_lease_idx")
+  @@map("file_jobs")
+}

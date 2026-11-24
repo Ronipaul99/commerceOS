@@ -1,0 +1,95 @@
+name: businessos-local
+services:
+  postgres:
+    image: postgres:17.9-bookworm
+    environment:
+      POSTGRES_USER: businessos_fixture
+      POSTGRES_PASSWORD: local-fixtures-only
+      POSTGRES_DB: ${BUSINESSOS_LOCAL_DB:-businessos_local}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1' >/dev/null"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks: [data]
+
+  redis:
+    image: redis:7.4.8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -qx PONG"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks: [data]
+
+  storage:
+    image: node:22.22.2-bookworm-slim
+    user: node
+    command: ["node", "/local/object-store.mjs"]
+    environment:
+      HOST: 0.0.0.0
+    volumes:
+      - ./infra/local/object-store.mjs:/local/object-store.mjs:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks: [data]
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/local/api.Dockerfile
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3001"
+      BUSINESSOS_LOCAL_STACK: "1"
+    ports:
+      - target: 3001
+        published: "${BUSINESSOS_LOCAL_API_PORT:-13001}"
+        host_ip: 127.0.0.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/ready').then(r => process.exit(r.ok ? 0 : 1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks: [loopback-ingress, data]
+
+  fixtures:
+    image: postgres:17.9-bookworm
+    profiles: [tools]
+    environment:
+      PGHOST: postgres
+      PGUSER: businessos_fixture
+      PGPASSWORD: local-fixtures-only
+      PGDATABASE: ${BUSINESSOS_LOCAL_DB:-businessos_local}
+    entrypoint: ["psql", "-X", "--set", "ON_ERROR_STOP=1"]
+    command: ["--file", "/fixtures/001-environment-fixtures.sql"]
+    volumes:
+      - ./infra/local/sql:/fixtures:ro
+    networks: [data]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  loopback-ingress:
+  data:
+    internal: true
+
+volumes:
+  postgres-data:
+  redis-data:

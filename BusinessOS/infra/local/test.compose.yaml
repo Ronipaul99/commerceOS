@@ -1,0 +1,4 @@
+services:
+  api:
+    ports: !reset []
+    networks: !override [data]

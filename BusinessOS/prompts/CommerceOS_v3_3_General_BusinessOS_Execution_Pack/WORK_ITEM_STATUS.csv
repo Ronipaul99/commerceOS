@@ -5,14 +5,14 @@ M00.03,State machines and invariants,M00,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NO
 M00.04,Threat model and permission matrix,M00,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M00.05,Policy and legal decision gates,M00,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M00.06,QA architecture and SLO workload,M00,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.01,Repo structure and package boundaries,M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.02,Local development and test environments,M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.03,"HTTP contract, validation and API client",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.04,Database migrations and transaction toolkit,M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.05,Tenant and branch execution context plumbing,M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.06,Transactional outbox and worker foundation,M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.07,"Authentication, secrets and protected configuration base",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.08,File object and background jobs infrastructure,M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
+M01.01,Repo structure and package boundaries,M01,IN_REVIEW,,,,../../docs/features/M01.01/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,
+M01.02,Local development and test environments,M01,BLOCKED,,,,../../docs/features/M01.02/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Docker runtime acceptance unavailable on current host
+M01.03,"HTTP contract, validation and API client",M01,IN_REVIEW,,,,../../docs/features/M01.03/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,
+M01.04,Database migrations and transaction toolkit,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.04/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
+M01.05,Tenant and branch execution context plumbing,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.05/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
+M01.06,Transactional outbox and worker foundation,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.06/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
+M01.07,"Authentication, secrets and protected configuration base",M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.07/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
+M01.08,File object and background jobs infrastructure,M01,BLOCKED,,,,../../docs/features/M01.08/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Native PostgreSQL and BullMQ qualification unavailable
 M01.09,"CI/CD, supply chain and feature flags",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M01.10,"Metrics, tracing and operational baseline",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M02.01,"Owner registration, login and account recovery",M02,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,

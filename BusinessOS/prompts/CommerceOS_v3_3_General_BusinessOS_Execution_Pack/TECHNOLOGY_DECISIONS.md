@@ -1,7 +1,7 @@
 # CommerceOS — Technology decision state for v3.3
 
-**Already baseline/selected in v3 master:** TypeScript; Node.js/NestJS modular monolith; PostgreSQL with Prisma; Redis and BullMQ; transactional outbox/inbox; REST + OpenAPI/generated clients; React Native/Expo; independent apps, API and workers; pnpm/Turborepo baseline; Docker/container delivery.
+**Baseline selected in v3 master** TypeScript, Node.js/NestJS modular monolith, PostgreSQL/Prisma, Redis/BullMQ, transactional outbox/inbox, REST/OpenAPI with generated clients, React Native/Expo, independent applications and workers, pnpm/Turborepo, and containers.
 
-**Proposals, NOT approved selections unless ADR-024 is signed:** Next.js (Business Web), Tailwind CSS, shadcn/ui/Radix, TanStack Query, React Hook Form/Zod, Zustand, Fastify HTTP adapter, Jest, Testcontainers, Playwright, Supertest, k6, GitHub Actions, OpenTelemetry backend/collector choices, Terraform, PgBouncer, authentication/OTP provider, payment/courier providers and OCI operating topology.
+**Approved carry-forward** The earlier engineering selections are adopted in v3.3 under [ADR-024](../../docs/adr/ADR-024.md), including its PgBouncer condition. This covers the scaffold toolchain for M01.01. Adopt each selection and pin applicable dependency versions in its owning work item.
 
-**Action:** During M00, write `docs/adr/ADR-024.md` and amend the master in the same approved change; block incompatible dependency installation in M01 until decided. Lock supported Node and package versions at implementation time, not by inventing a version here.
+**Open decisions** Fastify, the authentication/OTP provider, payment and courier providers, hosting topology, and OpenTelemetry collector/exporter choices remain subject to their respective approvals.

@@ -1,6 +1,6 @@
 # BusinessOS
 
-The M01.01 workspace provides independent application shells for the BusinessOS SaaS foundation. Follow the [engineering execution roadmap](doc/CommerceOS_v3_1_Engineering_Development_Package/commerceos-execution-v3.1/START_HERE.md) for work-item scope and sequencing.
+The M01.01 workspace provides independent application shells for the BusinessOS SaaS foundation. See the [v3.3 M01.01 prompt](prompts/CommerceOS_v3_3_General_BusinessOS_Execution_Pack/prompts/M01/M01.01.md) for work-item scope.
 
 ## Run locally
 
@@ -18,10 +18,15 @@ pnpm build
 | Business Web | `pnpm --filter @businessos/business-web dev` | `http://127.0.0.1:3000` |
 | Platform Admin | `pnpm --filter @businessos/platform-admin dev` | `http://127.0.0.1:3002` |
 | API | `pnpm --filter @businessos/api dev` | `http://127.0.0.1:3001` |
+| POS | `pnpm --filter @businessos/pos dev` | `http://127.0.0.1:3003` |
 | Business Mobile | `pnpm --filter @businessos/business-mobile dev` | Expo Router for Android and iOS |
 | Worker | `pnpm --filter @businessos/worker build` then `pnpm --filter @businessos/worker start` | Starts the Nest application context and exits after bootstrap |
 
 Each shell has its own build. The mobile build exports Android and iOS bundles. Use an Expo-compatible device or simulator for native runtime verification.
+
+## Local development and isolated tests
+
+Run `node infra/local/manage.mjs up` with a local Docker engine and Compose v2. It builds the API, starts PostgreSQL, Redis and the object-storage stub, then checks readiness. The API defaults to `http://127.0.0.1:13001`. See the [M01.02 runbook](docs/features/M01.02/RUNBOOK.md) for environment settings, migrations, the isolated smoke run and local reset.
 
 ## Package boundaries
 
@@ -30,11 +35,11 @@ Each shell has its own build. The mobile build exports Android and iOS bundles. 
 - `packages/api-contracts` and `packages/api-client` reserve typed public package entry points for M01.03.
 - `pnpm lint:boundaries` checks the dependency graph. Apps consume shared package entry points. Domain modules expose their public interface through their `index.ts`. The check rejects direct imports of private implementation files, imports between apps, and circular dependencies.
 
-The foundation shells require no credentials or backing services. M00 design review remains pending. Later work items add runtime data, API contracts, and operational infrastructure.
+The foundation shells require no credentials or backing services. The [v3.3 RG0 record](docs/RG0_SIGNOFF.md) and [ADR-024](docs/adr/ADR-024.md) cover the approved design and toolchain. The POS shell serves a web app manifest and icons. Register operations and transaction flows belong to later work items.
 
 ## M01.01 verification
 
-Verified locally with Node.js 22.22.2 and pnpm 9.4.0.
+See [v3.3 verification](docs/features/M01.01/VERIFICATION.md) for the current six-shell acceptance evidence. The original five-shell scaffold was verified locally with Node.js 22.22.2 and pnpm 9.4.0.
 
 - `pnpm.cmd install --reporter append-only` generated the lockfile from a clean workspace. `pnpm.cmd install --offline --frozen-lockfile --reporter append-only` passed against the populated pnpm store.
 - `pnpm.cmd run lint` passed. Synthetic dependency checks accepted public imports and rejected private package imports, private domain imports, cross-app imports, and cycles.

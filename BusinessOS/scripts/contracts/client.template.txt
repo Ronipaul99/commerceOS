@@ -1,0 +1,75 @@
+export class ApiError extends Error {
+  readonly status: number;
+  readonly envelope: ErrorEnvelope;
+
+  constructor(status: number, envelope: ErrorEnvelope) {
+    super(envelope.message);
+    this.name = "ApiError";
+    this.status = status;
+    this.envelope = envelope;
+  }
+}
+
+export interface RequestOptions {
+  requestId?: string;
+  signal?: AbortSignal;
+  idempotencyKey?: string;
+  ifMatch?: string;
+}
+
+export class BusinessOSApiClient {
+  private readonly origin: string;
+  private readonly accessToken: () => string | Promise<string>;
+  private readonly fetcher: typeof fetch;
+
+  constructor(
+    origin: string,
+    accessToken: () => string | Promise<string>,
+    fetcher: typeof fetch = fetch,
+  ) {
+    this.origin = origin;
+    this.accessToken = accessToken;
+    this.fetcher = fetcher;
+  }
+
+  private async request<T>(
+    method: string, path: string, query: Record<string, string | number | undefined>,
+    options: RequestOptions, body: unknown, binary: boolean,
+  ): Promise<T> {
+    const url = new URL(path, this.origin);
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined) url.searchParams.set(key, String(value));
+    }
+    const headers = new Headers({
+      Accept: binary ? "application/octet-stream" : "application/json", Authorization: "Bearer " + await this.accessToken(),
+    });
+    if (options.requestId !== undefined) headers.set("X-Request-Id", options.requestId);
+    if (options.idempotencyKey !== undefined) headers.set("Idempotency-Key", options.idempotencyKey);
+    if (options.ifMatch !== undefined) headers.set("If-Match", options.ifMatch);
+    if (body !== undefined) headers.set("Content-Type", "application/json");
+    const response = await this.fetcher(url, {
+      method, headers, redirect: "error", signal: options.signal, cache: "no-store", body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const data: unknown = await response.json().catch(() => undefined);
+      if (!isEnvelope(data)) {
+        throw new ApiError(response.status, {
+          code: "INVALID_ERROR_RESPONSE", message: "The API returned an invalid error response.",
+          details: {}, requestId: response.headers.get("x-request-id") ?? "",
+        });
+      }
+      throw new ApiError(response.status, data);
+    }
+    return (binary ? response.arrayBuffer() : response.json()) as Promise<T>;
+  }
+
+/* generated operations */
+}
+
+function isEnvelope(value: unknown): value is ErrorEnvelope {
+  if (value === null || typeof value !== "object") return false;
+  const record = value as Partial<ErrorEnvelope>;
+  return typeof record.code === "string" && typeof record.message === "string"
+    && typeof record.requestId === "string"
+    && record.details !== null && typeof record.details === "object" && !Array.isArray(record.details);
+}

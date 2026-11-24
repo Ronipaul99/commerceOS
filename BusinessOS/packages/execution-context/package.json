@@ -1,0 +1,23 @@
+{
+  "name": "@businessos/execution-context",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": { "types": "./src/index.ts", "default": "./dist/index.js" }
+  },
+  "scripts": {
+    "build": "tsc --noEmit false --rewriteRelativeImportExtensions --rootDir src --outDir dist",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "pnpm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+  },
+  "jest": {
+    "testMatch": ["<rootDir>/tests/**/*.test.mjs"],
+    "transform": {}
+  },
+  "devDependencies": {
+    "@businessos/config": "workspace:*",
+    "@jest/globals": "30.5.2",
+    "jest": "30.5.2"
+  }
+}

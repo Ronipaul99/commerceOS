@@ -1,0 +1,47 @@
+name: BusinessOS outbox and worker
+
+on:
+  pull_request:
+    paths:
+      - "BusinessOS/apps/worker/**"
+      - "BusinessOS/packages/database/**"
+      - "BusinessOS/packages/execution-context/**"
+      - "BusinessOS/tests/outbox/**"
+      - "BusinessOS/pnpm-lock.yaml"
+      - ".github/workflows/businessos-m0106-outbox.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-outbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: BusinessOS
+    services:
+      redis:
+        image: redis:7.4.8-alpine
+        ports:
+          - 6379/tcp
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: BusinessOS/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install locked dependencies
+        run: pnpm --filter businessos --filter @businessos/worker... --filter @businessos/database... install --frozen-lockfile
+      - name: Verify worker package
+        run: |
+          pnpm --filter @businessos/worker typecheck
+          pnpm --filter @businessos/worker test:unit
+          pnpm exec eslint apps/worker tests/outbox --max-warnings 0
+      - name: Verify delivery, crash recovery and replay with PostgreSQL and Redis
+        env:
+          M0106_REDIS_URL: redis://127.0.0.1:${{ job.services.redis.ports[6379] }}
+        run: node --test tests/outbox/isolation.test.mjs

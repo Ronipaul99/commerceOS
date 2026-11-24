@@ -1,0 +1,45 @@
+name: BusinessOS authentication and secrets
+
+on:
+  pull_request:
+    paths:
+      - "BusinessOS/**"
+      - ".github/workflows/businessos-m0107-security.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-protected-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: BusinessOS
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: BusinessOS/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Scan source with pinned Gitleaks and verify redacted positive control
+        run: |
+          archive="$RUNNER_TEMP/gitleaks_8.30.1_linux_x64.tar.gz"
+          directory="$RUNNER_TEMP/businessos-gitleaks"
+          curl --fail --silent --show-error --location --retry 2 \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
+            --output "$archive"
+          printf '%s  %s\n' '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb' "$archive" | sha256sum --check --status
+          mkdir -p "$directory"
+          tar -xzf "$archive" -C "$directory" gitleaks
+          GITLEAKS_BIN="$directory/gitleaks" node scripts/security/scan-secrets.mjs
+      - name: Install locked API dependencies
+        run: pnpm --filter businessos --filter @businessos/api... install --frozen-lockfile
+      - name: Verify protected and existing API paths
+        run: |
+          pnpm --filter @businessos/api typecheck
+          pnpm --filter @businessos/api test:auth
+          pnpm exec eslint apps/api tests/security scripts/security --max-warnings 0
+          node --test tests/security/http.test.mjs tests/contracts/http.test.mjs infra/local/host-smoke.test.mjs

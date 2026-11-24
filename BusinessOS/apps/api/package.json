@@ -4,12 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "pnpm --filter @businessos/execution-context build && pnpm --filter @businessos/file-jobs build && tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
     "dev": "pnpm run build && node --watch dist/main.js",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "test:auth": "pnpm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+  },
+  "jest": {
+    "testMatch": ["<rootDir>/tests/security/**/*.test.mjs"],
+    "transform": {}
   },
   "dependencies": {
+    "@businessos/execution-context": "workspace:*",
+    "@businessos/file-jobs": "workspace:*",
     "@nestjs/common": "12.6.0",
     "@nestjs/core": "12.6.0",
     "@nestjs/platform-express": "12.6.0",
@@ -17,6 +24,9 @@
     "rxjs": "7.8.2"
   },
   "devDependencies": {
-    "@businessos/config": "workspace:*"
+    "@businessos/config": "workspace:*",
+    "@jest/globals": "30.5.2",
+    "jest": "30.5.2",
+    "supertest": "7.3.2"
   }
 }

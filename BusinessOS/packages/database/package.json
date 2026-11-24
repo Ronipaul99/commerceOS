@@ -1,0 +1,30 @@
+{
+  "name": "@businessos/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:unit": "tsc --noEmit false --rewriteRelativeImportExtensions --rootDir src --outDir dist/toolkit && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "db:validate": "prisma validate --config fixtures/prisma.config.ts",
+    "db:generate": "prisma generate --config fixtures/prisma.config.ts",
+    "test:postgres": "node fixtures/verify-postgres.mjs"
+  },
+  "jest": {
+    "testMatch": ["<rootDir>/tests/**/*.test.mjs"],
+    "transform": {}
+  },
+  "devDependencies": {
+    "@businessos/config": "workspace:*",
+    "@jest/globals": "30.5.2",
+    "@prisma/adapter-pg": "7.8.0",
+    "@prisma/client": "7.8.0",
+    "@testcontainers/postgresql": "12.2.2",
+    "jest": "30.5.2",
+    "pg": "8.16.3",
+    "prisma": "7.8.0"
+  }
+}

@@ -9,6 +9,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@businessos/api-contracts": "workspace:*"
+  },
   "devDependencies": {
     "@businessos/config": "workspace:*"
   }

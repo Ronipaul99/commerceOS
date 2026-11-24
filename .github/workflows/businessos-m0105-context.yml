@@ -1,0 +1,38 @@
+name: BusinessOS execution context
+
+on:
+  pull_request:
+    paths:
+      - "BusinessOS/apps/api/**"
+      - "BusinessOS/packages/execution-context/**"
+      - "BusinessOS/packages/database/**"
+      - "BusinessOS/tests/execution-context/**"
+      - "BusinessOS/pnpm-lock.yaml"
+      - ".github/workflows/businessos-m0105-context.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: BusinessOS
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: BusinessOS/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install locked dependencies
+        run: pnpm --filter businessos --filter @businessos/api... --filter @businessos/database... install --frozen-lockfile
+      - name: Verify execution context
+        run: |
+          pnpm --filter @businessos/api build
+          pnpm --filter @businessos/execution-context test:unit
+          pnpm exec eslint apps/api packages/execution-context tests/execution-context --max-warnings 0
+          node --test tests/execution-context/isolation.test.mjs

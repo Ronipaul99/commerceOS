@@ -707,6 +707,14 @@ Agent receives one milestone at a time; before code, list impacted modules and u
 
 **Gate log protocol:** record final decision, approver, effective date, requirement delta and tests in master/ADR amendment. Product owner should not ask coding agents to invent legal rates, merchant conditions or external account credentials. In release readouts, unresolved gating item is reported as `BLOCKED`, not silently omitted.
 
+### 23.4 ADR-024 BusinessOS engineering toolchain for v3.3
+
+Approved on 24 November 2026 by Roni paul as Founder/Product and Architect. The [recorded ADR-024](../../docs/adr/ADR-024.md) carries forward the previously approved engineering choices. This resolves G-18 for the M01.01 scaffold. Unsettled tool and provider decisions retain their applicable gates and are listed in the ADR.
+
+### 23.5 M01.01 POS shell scope decision
+
+Approved on 24 November 2026 by Roni paul as Founder/Product and Architect. M01.01 includes the independent online-first POS web shell specified by §§16.1 and 22. Use the approved web toolchain and shared package boundaries. Register, sales, cashbook and payment capability delivery remains optional and gated under its owning work items. This resolves POS shell timing for v3.3.
+
 ## 24. End-to-end reference acceptance scenarios
 
 These constitute canonical UAT scripts; every script must run in Tenant A and check isolation from Tenant B.

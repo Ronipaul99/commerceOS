@@ -1,0 +1,30 @@
+name: BusinessOS HTTP contract
+
+on:
+  pull_request:
+    paths:
+      - "BusinessOS/packages/api-contracts/**"
+      - "BusinessOS/packages/api-client/**"
+      - "BusinessOS/scripts/contracts/**"
+      - ".github/workflows/businessos-http-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BusinessOS
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check generated artifacts and compatibility
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/contracts/generate.mjs --check --base-ref "$BASE_SHA"

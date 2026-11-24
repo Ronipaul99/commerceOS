@@ -2,7 +2,8 @@
   "extends": "@businessos/config/tsconfig.backend.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
     "src/**/*.ts"

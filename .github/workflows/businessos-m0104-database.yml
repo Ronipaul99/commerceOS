@@ -1,0 +1,38 @@
+name: BusinessOS database toolkit
+
+on:
+  pull_request:
+    paths:
+      - "BusinessOS/packages/database/**"
+      - "BusinessOS/packages/config/**"
+      - "BusinessOS/pnpm-lock.yaml"
+      - "BusinessOS/pnpm-workspace.yaml"
+      - ".github/workflows/businessos-m0104-database.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: BusinessOS
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: BusinessOS/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install locked database dependencies
+        run: pnpm --filter businessos --filter @businessos/database... install --frozen-lockfile
+      - name: Run database toolkit checks
+        run: |
+          pnpm --filter @businessos/database typecheck
+          pnpm --filter @businessos/database test:unit
+          pnpm exec eslint packages/database --max-warnings 0
+      - name: Verify migration rollout and transactions on disposable PostgreSQL
+        run: pnpm --filter @businessos/database test:postgres
