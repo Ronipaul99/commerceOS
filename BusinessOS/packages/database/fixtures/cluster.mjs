@@ -82,6 +82,9 @@ export async function withDisposableServer(callback) {
   try {
     assert.ok(["127.0.0.1", "localhost"].includes(container.getHost()), "Use a local Docker engine.");
     const address = new URL(container.getConnectionUri());
+    if (address.protocol === "postgres:") {
+      address.protocol = "postgresql:";
+    }
     address.hostname = "127.0.0.1";
     return await callback(adminUrl(address));
   } finally {
