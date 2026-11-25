@@ -13,7 +13,7 @@ M01.05,Tenant and branch execution context plumbing,M01,IN_REVIEW,Roni paul,2026
 M01.06,Transactional outbox and worker foundation,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.06/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
 M01.07,"Authentication, secrets and protected configuration base",M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.07/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
 M01.08,File object and background jobs infrastructure,M01,BLOCKED,,,,../../docs/features/M01.08/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Native PostgreSQL and BullMQ qualification unavailable
-M01.09,"CI/CD, supply chain and feature flags",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
+M01.09,"CI/CD, supply chain and feature flags",M01,BLOCKED,,,,../../docs/features/M01.09/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted staging and rollback qualification and independent review pending
 M01.10,"Metrics, tracing and operational baseline",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M02.01,"Owner registration, login and account recovery",M02,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M02.02,Tenant creation and membership switching,M02,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,

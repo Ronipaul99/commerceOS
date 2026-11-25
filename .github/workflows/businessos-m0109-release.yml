@@ -1,0 +1,229 @@
+name: BusinessOS portable release
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: businessos-release-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: BusinessOS
+    shell: bash
+
+env:
+  M0109_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+jobs:
+  scope:
+    name: BusinessOS release scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      affected: ${{ steps.scope.outputs.affected }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: scope
+        working-directory: .
+        run: |
+          [[ "$M0109_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          status=0
+          git diff --quiet "$M0109_BASE_SHA" HEAD -- BusinessOS .github/workflows/businessos-m0109-release.yml || status=$?
+          case "$status" in
+            0) printf '%s\n' 'affected=false' >> "$GITHUB_OUTPUT" ;;
+            1) printf '%s\n' 'affected=true' >> "$GITHUB_OUTPUT" ;;
+            *) exit 1 ;;
+          esac
+
+  quality:
+    needs: scope
+    if: ${{ needs.scope.outputs.affected == 'true' }}
+    name: BusinessOS verification / ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [lint, types, unit, contracts]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - run: corepack enable && pnpm install --frozen-lockfile
+      - name: Run verification
+        env:
+          SUITE: ${{ matrix.suite }}
+        run: |
+          case "$SUITE" in
+            lint) pnpm run lint && pnpm exec eslint scripts/release tests/release --max-warnings 0 ;;
+            types) pnpm run typecheck --concurrency=2 ;;
+            unit)
+              pnpm --filter @businessos/database test:unit
+              pnpm --filter @businessos/execution-context test:unit
+              pnpm --filter @businessos/api test:auth
+              pnpm --filter @businessos/worker test:unit
+              pnpm --filter @businessos/file-jobs test:unit
+              node --test tests/release/controls.test.mjs
+              ;;
+            contracts)
+              pnpm --filter @businessos/api build
+              node scripts/contracts/generate.mjs --check --base-ref "$M0109_BASE_SHA"
+              node scripts/release/preflight.mjs
+              node --test tests/contracts/http.test.mjs tests/security/http.test.mjs infra/local/host-smoke.test.mjs
+              ;;
+            *) exit 1 ;;
+          esac
+
+  supply:
+    needs: scope
+    if: ${{ needs.scope.outputs.affected == 'true' }}
+    name: BusinessOS supply chain
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Scan secrets using the existing pinned release
+        run: |
+          archive="$RUNNER_TEMP/gitleaks_8.30.1_linux_x64.tar.gz"
+          target="$RUNNER_TEMP/businessos-gitleaks"
+          curl --fail --silent --show-error --location --retry 2 \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
+            --output "$archive"
+          printf '%s  %s\n' '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb' "$archive" | sha256sum --check --status
+          mkdir -p "$target"
+          tar -xzf "$archive" -C "$target" gitleaks
+          GITLEAKS_BIN="$target/gitleaks" node scripts/security/scan-secrets.mjs
+      - id: dependencies
+        run: corepack enable && pnpm install --frozen-lockfile
+      - name: Require a clean dependency audit
+        run: |
+          report="$(mktemp)"
+          trap 'rm -f -- "$report"' EXIT
+          status=0
+          pnpm audit --audit-level high --json >"$report" 2>/dev/null || status=$?
+          # pnpm 9 can return 1 for findings below the release severity threshold.
+          node scripts/release/gate.mjs audit "$report" "$status"
+      - name: Run targeted static analysis
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: node scripts/release/sast.mjs
+
+  integration:
+    needs: scope
+    if: ${{ needs.scope.outputs.affected == 'true' }}
+    name: BusinessOS native integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7.4.8-alpine
+        ports: [6379/tcp]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - run: corepack enable && pnpm install --frozen-lockfile
+      - name: Run scoped database and queue verification
+        env:
+          M0106_REDIS_URL: redis://127.0.0.1:${{ job.services.redis.ports[6379] }}
+          M0108_REDIS_URL: redis://127.0.0.1:${{ job.services.redis.ports[6379] }}
+        run: |
+          pnpm --filter @businessos/api build
+          pnpm --filter @businessos/worker build
+          pnpm --filter @businessos/database test:postgres
+          node --test --test-concurrency=1 tests/execution-context/isolation.test.mjs tests/outbox/isolation.test.mjs tests/files/integration.test.mjs
+
+  review:
+    needs: scope
+    if: ${{ needs.scope.outputs.affected == 'true' }}
+    name: BusinessOS independent review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Verify an independent review of the tested head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          [[ "$TESTED_HEAD" =~ ^[0-9a-f]{40}$ ]]
+          tmp="$(mktemp -d)"
+          trap 'rm -f -- "$tmp/pr.json" "$tmp/reviews.json"; rmdir -- "$tmp"' EXIT
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" >"$tmp/pr.json"
+          test "$(jq -r '.head.sha' "$tmp/pr.json")" = "$TESTED_HEAD"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews?per_page=100" >"$tmp/reviews.json"
+          node scripts/release/gate.mjs review "$tmp/pr.json" "$tmp/reviews.json"
+
+  rehearsal:
+    name: BusinessOS disposable staging and rollback
+    needs: [quality, supply, integration, review]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - run: corepack enable && pnpm install --frozen-lockfile
+      - run: pnpm --filter @businessos/api build
+      - run: bash infra/release/build-rehearsal.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: businessos-staging-artifact
+          path: ${{ runner.temp }}/businessos-release/
+          if-no-files-found: error
+          retention-days: 7
+
+  gate:
+    name: BusinessOS release gate
+    if: ${{ always() }}
+    needs: [scope, quality, supply, integration, review, rehearsal]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22.22.2"
+      - name: Fail on a failed, missing, skipped or cancelled check
+        env:
+          M0109_CHECK_RESULTS: ${{ toJSON(needs) }}
+          M0109_AFFECTED: ${{ needs.scope.outputs.affected }}
+        run: node scripts/release/gate.mjs complete
