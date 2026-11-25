@@ -1,5 +1,6 @@
 import { Controller, Get, Header, ServiceUnavailableException } from "@nestjs/common";
 import { createConnection } from "node:net";
+import { apiTelemetry } from "./observability.js";
 
 function probeSocket(host: string, port: number, command?: string): Promise<boolean> {
   return new Promise((resolve) => {
@@ -41,13 +42,14 @@ export class HealthController {
   @Header("Cache-Control", "no-store")
   async ready(): Promise<{ status: "ready" }> {
     if (process.env.BUSINESSOS_LOCAL_STACK === "1") {
+      const result = (ok: boolean) => ok ? "ok" : "error";
       const checks = await Promise.all([
-        probeSocket("postgres", 5432),
-        probeSocket("redis", 6379, "*1\r\n$4\r\nPING\r\n"),
-        fetch("http://storage:3100/health", {
+        apiTelemetry.observe("readiness.db", () => probeSocket("postgres", 5432), undefined, result),
+        apiTelemetry.observe("readiness.redis", () => probeSocket("redis", 6379, "*1\r\n$4\r\nPING\r\n"), undefined, result),
+        apiTelemetry.observe("readiness.storage", () => fetch("http://storage:3100/health", {
           signal: AbortSignal.timeout(1000),
           redirect: "error",
-        }).then((result) => result.ok, () => false),
+        }).then((response) => response.ok, () => false), undefined, result),
       ]);
       if (checks.every(Boolean)) {
         return { status: "ready" };

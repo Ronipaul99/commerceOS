@@ -3,6 +3,7 @@ import type { Type } from "@nestjs/common";
 import { NestFactory, Reflector } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import type { Server } from "node:http";
+import type { Telemetry } from "@businessos/telemetry";
 import { AppModule } from "./app.module.js";
 import { ContractExceptionFilter, ContractGuard, ContractTimeout, requestMetadata } from "./http/transport.js";
 import type { PrincipalVerifier } from "./http/transport.js";
@@ -13,17 +14,20 @@ import { initializeProtectedSecurity } from "./security/protected.js";
 import type { SecurityDependencies } from "./security/protected.js";
 import type { Environment } from "./security/config.js";
 import { reportSecurity, SecurityFailure } from "./security/policy.js";
+import { apiTelemetry, observeHttp } from "./observability.js";
 
 async function composeApi(
   verify: PrincipalVerifier,
   rootModule: Type,
   scope?: ScopeOptions,
   protectedAuth?: ProtectedAdmission,
+  telemetry = apiTelemetry,
 ) {
   const app = await NestFactory.create<NestExpressApplication>(rootModule, {
-    bodyParser: false, ...(protectedAuth ? { logger: false as const, abortOnError: false } : {}),
+    bodyParser: false, logger: false, ...(protectedAuth ? { abortOnError: false } : {}),
   });
   app.getHttpAdapter().getInstance().disable("x-powered-by");
+  app.use(observeHttp(telemetry));
   app.use(securityHeaders(protectedAuth?.config));
   app.use(requestMetadata);
   app.useBodyParser("json", { limit: 65536, inflate: false });
@@ -39,8 +43,10 @@ async function composeApi(
 
 const noPrincipal: PrincipalVerifier = async () => undefined;
 
-export function createApi(verify: PrincipalVerifier = noPrincipal, rootModule: Type = AppModule, scope?: ScopeOptions) {
-  return composeApi(verify, rootModule, scope);
+export function createApi(
+  verify: PrincipalVerifier = noPrincipal, rootModule: Type = AppModule, scope?: ScopeOptions, telemetry?: Telemetry,
+) {
+  return composeApi(verify, rootModule, scope, undefined, telemetry);
 }
 
 export async function createProtectedApi(

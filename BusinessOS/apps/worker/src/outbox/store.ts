@@ -1,19 +1,22 @@
 import { randomUUID } from "node:crypto";
 import { ContextError, scopeFor } from "@businessos/execution-context";
 import type { RequestContext } from "@businessos/execution-context";
+import { activeTraceParent } from "@businessos/telemetry";
+import { workerTelemetry } from "../observability.js";
 import { access, consumer, positiveInt, validateLimits, validatePayload, uuidValue } from "./contract.js";
 import type { Database, Delivery, Failure, Limits, Sql } from "./contract.js";
 
 export const columns = `event_id AS "eventId", tenant_id AS "tenantId", branch_id AS "branchId",
   event_type AS "eventType", schema_version AS "schemaVersion", aggregate_type AS "aggregateType",
   aggregate_id AS "aggregateId", aggregate_version AS "aggregateVersion", occurred_at AS "occurredAt",
-  correlation_id AS "correlationId", causation_id AS "causationId", payload, consumer, state, generation,
+  correlation_id AS "correlationId", causation_id AS "causationId", trace_parent AS "traceParent", payload, consumer, state, generation,
   dispatch_attempts AS "dispatchAttempts", attempts_used AS "attemptsUsed", next_attempt_at AS "nextAttemptAt",
   lease_token AS "leaseToken", proof_digest AS "proofDigest", proof_expires_at AS "proofExpiresAt",
   updated_at AS "updatedAt"`;
 
 export async function appendProbeEvent(
   tx: Sql, context: RequestContext, aggregateVersion: number, probeRef: string,
+  telemetry = workerTelemetry,
 ): Promise<string> {
   const scope = scopeFor(context, access.publish);
   const { tenantId, branchId } = scope;
@@ -25,18 +28,19 @@ export async function appendProbeEvent(
   }
   // The producer holds its aggregate row lock before allocating this version.
   const id = randomUUID();
-  const inserted = await tx.$executeRawUnsafe(`
+  const inserted = await telemetry.observe("db.outbox_append", () => tx.$executeRawUnsafe(`
     INSERT INTO outbox_events (event_id, tenant_id, branch_id, event_type, schema_version, aggregate_type,
-       aggregate_id, aggregate_version, correlation_id, causation_id, payload, consumer)
+       aggregate_id, aggregate_version, correlation_id, causation_id, payload, consumer, trace_parent)
     SELECT $1::uuid, $2::uuid, $3::uuid, 'fixture.probe_recorded', 1, 'fixture.branch', $3::uuid,
-       $4::int, $5::uuid, $6::uuid, $7::jsonb, $8
+       $4::int, $5::uuid, $6::uuid, $7::jsonb, $8, $10
     WHERE EXISTS (
       SELECT 1 FROM fixture_transaction_probe WHERE tenant_id = $2::uuid AND branch_id = $3::uuid AND id = $9::uuid
     ) AND NOT EXISTS (
       SELECT 1 FROM outbox_events WHERE tenant_id = $2::uuid AND aggregate_type = 'fixture.branch'
         AND aggregate_id = $3::uuid AND aggregate_version >= $4::int
     )
-  `, id, tenantId, branchId, aggregateVersion, correlationId, attemptId, JSON.stringify({ probeRef }), consumer, probeRef);
+  `, id, tenantId, branchId, aggregateVersion, correlationId, attemptId, JSON.stringify({ probeRef }), consumer, probeRef, activeTraceParent()),
+  undefined, (count) => count === 1 ? "ok" : "denied");
   if (inserted !== 1) throw new Error("The scoped outbox append was rejected.");
   return id;
 }
@@ -64,13 +68,13 @@ export async function terminal(tx: Sql, row: Delivery, reason: Failure): Promise
 export class DeliveryStore {
   readonly limits: Limits;
 
-  constructor(readonly database: Database, limits: Limits) {
+  constructor(readonly database: Database, limits: Limits, readonly telemetry = workerTelemetry) {
     this.limits = validateLimits(limits);
   }
 
   claim(count: number): Promise<Delivery[]> {
     const { limits } = this;
-    return this.database.$transaction(async (tx) => {
+    return this.telemetry.observe("db.outbox_claim", () => this.database.$transaction(async (tx) => {
       const [permit] = await tx.$queryRawUnsafe<{ locked: boolean }[]>(
         "SELECT pg_try_advisory_xact_lock(hashtext($1)) AS locked", "outbox-admission-" + consumer,
       );
@@ -102,7 +106,7 @@ export class DeliveryStore {
         claimed.push(row);
       }
       return claimed;
-    });
+    }));
   }
 
   prepare(row: Delivery, digest: string, expiresAt: Date): Promise<number> {
@@ -145,11 +149,11 @@ export class DeliveryStore {
   }
 
   due(): Promise<Delivery[]> {
-    return this.database.$queryRawUnsafe(`
+    return this.telemetry.observe("db.outbox_lookup", () => this.database.$queryRawUnsafe<Delivery[]>(`
       SELECT ${columns} FROM outbox_events WHERE consumer = $1 AND state = 'ENQUEUED'
         AND next_attempt_at <= CURRENT_TIMESTAMP
       ORDER BY next_attempt_at, event_id LIMIT $2::int
-    `, consumer, this.limits.batchSize);
+    `, consumer, this.limits.batchSize));
   }
 
   settleObservation(row: Delivery, outcome: "KEEP" | "REQUEUE" | Failure): Promise<boolean> {

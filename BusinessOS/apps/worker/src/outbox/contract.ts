@@ -27,6 +27,7 @@ export type Envelope = Readonly<{
   occurredAt: Date;
   correlationId: string;
   causationId: string;
+  traceParent?: string | null;
   payload: unknown;
   consumer: string;
 }>;

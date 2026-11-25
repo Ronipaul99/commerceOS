@@ -1,6 +1,6 @@
 # M01.08 verification
 
-**Status** `BLOCKED` on native platform qualification. The scoped code and local functional checks are complete. Verified on 24 November 2026, Asia/Kolkata, using Windows, Node.js 22.22.2, pnpm 9.4.0, Prisma 7.8.0, Jest 30.5.2 and embedded PostgreSQL 17.5. All data and keys were synthetic.
+**Status** `IN_REVIEW`. Local acceptance includes the native file-job results previously recorded during M01.10. The original embedded checks ran on 24 November 2026, Asia/Kolkata, using Windows, Node.js 22.22.2, pnpm 9.4.0, Prisma 7.8.0, Jest 30.5.2 and embedded PostgreSQL 17.5. All data and keys were synthetic.
 
 | Check | Observed result |
 |---|---|
@@ -11,8 +11,8 @@
 | Loopback and regressions | `node --test tests/files/embedded.test.mjs tests/contracts/http.test.mjs tests/security/http.test.mjs infra/local/host-smoke.test.mjs` passed 19 tests. Five file cases used real NestJS HTTP and embedded PostgreSQL with an injected broker handoff, encrypted fixture storage and controlled scanner verdicts. |
 | Frozen lock | `pnpm.cmd --filter businessos --filter @businessos/api... --filter @businessos/worker... --filter @businessos/database... install --lockfile-only --offline --frozen-lockfile --store-dir 'D:/.pnpm-store'` passed. |
 | Timing | The five-case file suite took 5.61 seconds including embedded database startup and migration, and the combined command took 8.45 seconds. These are local test durations. Load and multi-session lock contention qualification remain open under G-11. |
-| Native qualification | `node --test tests/files/integration.test.mjs` is implemented and `NOT_RUN`. This host lacks native PostgreSQL and Redis and has no available container runtime. Automatic approval review rejected downloading the portable fixture binaries because the session hit its usage limit, so neither download ran. Native Prisma deploy and drift verification, real Redis delivery, and hosted CI remain pending. |
-| Review and other checks | Human review before merge is pending. Production storage and malware scanner qualification and standalone secret scanning are `NOT_RUN`. Browser UI, money, quantity and external events are `NOT_APPLICABLE`. [Implementation and rollback](IMPLEMENTATION_EVIDENCE.md) |
+| Native qualification | PASS, previously recorded on 25 November 2026. `tests/files/integration.test.mjs` passed all five file cases in the 24-test M01.10 native regression run. The file suite deployed and checked the schema on isolated PostgreSQL 17.10 and processed jobs through Redis 7.4.11 and BullMQ. This run used Prisma 7.8.0 before the Step 1 dependency upgrade. Step 2 linked the earlier run. [M01.10 native regression results](../M01.10/VERIFICATION.md) · [Native file suite](../../../tests/files/integration.test.mjs) |
+| Review and other checks | Human review, hosted CI on the updated lockfile, and production storage and malware scanner qualification remain pending. The local suites used fixture storage and controlled scanner responses. Browser UI, money, quantity and external events are `NOT_APPLICABLE`. [Implementation and rollback](IMPLEMENTATION_EVIDENCE.md) |
 
 ## Acceptance evidence
 
@@ -22,6 +22,6 @@
 | FILE-02 | Traversal, Windows device names, control characters, surplus scope fields, an unsupported media type, malformed UTF-8, noncanonical base64, wrong decoded size and an oversized upload were rejected. Invalid requests created no additional stored object. |
 | FILE-03 | Tenant A, an unassigned branch, and a non-owner with SELF access could not access those files or job resources. An altered signature and an expired grant received 404. A separate unit case rejected a different session for the same actor. |
 | FILE-04 | Concurrent duplicate uploads returned the same job, changed bytes conflicted, and a cancelled job ignored stale delivery. Cancellation during an active scan prevented a subsequent clean verdict from publishing the file. Simulated scanner rejection left the file unavailable. |
-| FILE-05 | A forged job delivery was denied. Three simulated unavailable scans exhausted the persisted attempt budget. A simulated broker failure left a recoverable lease. A fresh signed generation completed that job after the fixture advanced the lease. Actual BullMQ execution still requires the native qualification. |
+| FILE-05 | A forged job delivery was denied. Three simulated unavailable scans exhausted the persisted attempt budget. A simulated broker failure left a recoverable lease. A fresh signed generation completed that job after the fixture advanced the lease. The previously recorded native suite also passed this case with the BullMQ runtime. |
 
 The initial strict build flagged an ES2024 Promise helper, which was replaced with the workspace's ES2022-compatible construction. Focused lint caught unused directives and the intended control-character filter, after which the final lint passed.

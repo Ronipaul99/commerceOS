@@ -52,7 +52,8 @@ export class OutboxRelay {
     const rows = await this.store.claim(available);
     for (const row of rows) {
       report(this.binding.metrics, "claimed");
-      await this.#dispatch(row);
+      this.store.telemetry.queueSample("outbox", { ageMs: Math.max(0, Date.now() - row.occurredAt.getTime()) });
+      await this.store.telemetry.observe("outbox.dispatch", () => this.#dispatch(row), row.traceParent);
     }
     return rows.length;
   }
@@ -73,6 +74,7 @@ export class OutboxRelay {
         await this.store.exhaustedDispatch(row,
           row.attemptsUsed >= limits.maxAttempts ? "CONSUMER_EXHAUSTED" : "DISPATCH_EXHAUSTED");
         report(this.binding.metrics, "dead_letter");
+        this.store.telemetry.signal("outbox.dead_letter", "error");
         return;
       }
 
@@ -121,6 +123,7 @@ export class OutboxRelay {
       : matches && !expired && seen.stalled && row.attemptsUsed > 0 ? "QUEUE_FAILED" : "REQUEUE";
     const changed = await this.store.settleObservation(row, outcome);
     if (changed) report(this.binding.metrics, outcome === "REQUEUE" ? "reconciled" : "dead_letter");
+    if (changed && outcome !== "REQUEUE") this.store.telemetry.begin("outbox.dead_letter", row.traceParent).end("error");
     return changed;
   }
 }

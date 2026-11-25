@@ -3,6 +3,7 @@ import {
 } from "@nestjs/common";
 import { authorizeHttp, configureAccess, releaseContext } from "@businessos/execution-context";
 import type { Access, AuditSink, HttpAuthority, RequestContext } from "@businessos/execution-context";
+import { recordVerifiedScope } from "@businessos/telemetry";
 import type { ServerResponse } from "node:http";
 import { invalid } from "./contract.js";
 import type { ContractRequest } from "./contract.js";
@@ -43,6 +44,7 @@ export async function requireScope(
     { kind: "human", id: principal.subject, identityRef: principal.sessionId }, access, options.resolve, options.audit,
   );
   request.executionContext = scoped;
+  recordVerifiedScope(scoped.auth.tenantId, scoped.auth.principal.id);
   const release = () => {
     releaseContext(scoped);
     response.off("finish", release);

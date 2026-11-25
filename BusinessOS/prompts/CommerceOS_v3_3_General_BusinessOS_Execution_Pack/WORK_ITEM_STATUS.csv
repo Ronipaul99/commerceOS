@@ -6,15 +6,15 @@ M00.04,Threat model and permission matrix,M00,NOT_STARTED,,,,,PENDING,NOT_REVIEW
 M00.05,Policy and legal decision gates,M00,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M00.06,QA architecture and SLO workload,M00,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M01.01,Repo structure and package boundaries,M01,IN_REVIEW,,,,../../docs/features/M01.01/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.02,Local development and test environments,M01,BLOCKED,,,,../../docs/features/M01.02/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Docker runtime acceptance unavailable on current host
+M01.02,Local development and test environments,M01,IN_REVIEW,,,,../../docs/features/M01.02/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Human review pending after local Docker Compose acceptance passed
 M01.03,"HTTP contract, validation and API client",M01,IN_REVIEW,,,,../../docs/features/M01.03/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.04,Database migrations and transaction toolkit,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.04/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
-M01.05,Tenant and branch execution context plumbing,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.05/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
-M01.06,Transactional outbox and worker foundation,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.06/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
-M01.07,"Authentication, secrets and protected configuration base",M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.07/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted CI and independent review pending
-M01.08,File object and background jobs infrastructure,M01,BLOCKED,,,,../../docs/features/M01.08/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Native PostgreSQL and BullMQ qualification unavailable
-M01.09,"CI/CD, supply chain and feature flags",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
-M01.10,"Metrics, tracing and operational baseline",M01,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
+M01.04,Database migrations and transaction toolkit,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.04/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted PostgreSQL fixture URI validation failed and independent review pending
+M01.05,Tenant and branch execution context plumbing,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.05/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted execution context setup failed PostgreSQL fixture URI validation and independent review pending
+M01.06,Transactional outbox and worker foundation,M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.06/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted outbox setup failed PostgreSQL fixture URI validation and independent review pending
+M01.07,"Authentication, secrets and protected configuration base",M01,IN_REVIEW,Roni paul,2026-11-24,,../../docs/features/M01.07/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Independent security review pending after hosted authentication and secrets passed
+M01.08,File object and background jobs infrastructure,M01,IN_REVIEW,,,,../../docs/features/M01.08/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Hosted file-job suite on the updated lockfile not reached after PostgreSQL fixture failure and human review pending
+M01.09,"CI/CD, supply chain and feature flags",M01,BLOCKED,,,04d091c3b2ea354280556729830e12df660c2efd,../../docs/features/M01.09/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,PR #2 current-head approval requested from officialamibey-spec and hosted rehearsal and release gate pending
+M01.10,"Metrics, tracing and operational baseline",M01,IN_REVIEW,,,,../../docs/features/M01.10/VERIFICATION.md,PENDING,NOT_REVIEWED,NOT_PERFORMED,Step 4 hosted blocked by M01.09 qualification and pending staging telemetry access retention and alert destination approvals
 M02.01,"Owner registration, login and account recovery",M02,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M02.02,Tenant creation and membership switching,M02,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,
 M02.03,"Branches, stock locations and registers",M02,NOT_STARTED,,,,,PENDING,NOT_REVIEWED,NOT_PERFORMED,

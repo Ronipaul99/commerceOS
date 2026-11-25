@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter @businessos/execution-context build && pnpm --filter @businessos/file-jobs build && tsc -p tsconfig.json",
+    "build": "pnpm --filter @businessos/execution-context build && pnpm --filter @businessos/file-jobs build && pnpm --filter @businessos/telemetry build && tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
     "dev": "pnpm run build && node --watch dist/main.js",
     "start": "node dist/main.js",
@@ -17,6 +17,7 @@
   "dependencies": {
     "@businessos/execution-context": "workspace:*",
     "@businessos/file-jobs": "workspace:*",
+    "@businessos/telemetry": "workspace:*",
     "@nestjs/common": "12.6.0",
     "@nestjs/core": "12.6.0",
     "bullmq": "5.81.6",

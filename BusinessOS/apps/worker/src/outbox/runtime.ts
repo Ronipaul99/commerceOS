@@ -1,4 +1,6 @@
 import type { ConnectionOptions } from "bullmq";
+import type { Telemetry } from "@businessos/telemetry";
+import { workerTelemetry } from "../observability.js";
 import { bullConsumer, BullDeliveryQueue } from "./bull.js";
 import { defaultLimits, positiveInt } from "./contract.js";
 import type { Database, Limits } from "./contract.js";
@@ -18,6 +20,7 @@ export type RuntimeOptions = Readonly<{
   limits?: Limits;
   intervalMs?: number;
   workerOptions?: Parameters<typeof bullConsumer>[3];
+  telemetry?: Telemetry;
 }>;
 
 export async function startOutboxRuntime(options: RuntimeOptions): Promise<{ close: () => Promise<void> }> {
@@ -25,11 +28,12 @@ export async function startOutboxRuntime(options: RuntimeOptions): Promise<{ clo
   if (!positiveInt(interval) || !/^[A-Za-z0-9_-]{1,128}(?![\s\S])/.test(options.prefix)) {
     throw new Error("Invalid outbox runtime configuration.");
   }
-  const store = new DeliveryStore(options.database, options.limits ?? defaultLimits);
-  const queue = new BullDeliveryQueue(options.queueConnection, options.prefix);
+  const telemetry = options.telemetry ?? workerTelemetry;
+  const store = new DeliveryStore(options.database, options.limits ?? defaultLimits, telemetry);
+  const queue = new BullDeliveryQueue(options.queueConnection, options.prefix, telemetry);
   const worker = bullConsumer(
     options.workerConnection, options.prefix, deliveryProcessor(store, options.consumer),
-    options.workerOptions, options.consumer.metrics,
+    options.workerOptions, options.consumer.metrics, telemetry,
   );
   try {
     await Promise.all([queue.queue.waitUntilReady(), worker.waitUntilReady()]);

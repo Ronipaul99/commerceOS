@@ -1,5 +1,6 @@
 import { authorizeWrite, ContextError, createJobConsumer } from "@businessos/execution-context";
 import type { AuthContext, Authority, JobBinding, RequestContext } from "@businessos/execution-context";
+import { recordVerifiedScope } from "@businessos/telemetry";
 import { access, consumer, deliveryIdentity, probePayload, referenceDigest, routing } from "./contract.js";
 import type { Delivery, Sql } from "./contract.js";
 import { report } from "./relay.js";
@@ -103,7 +104,7 @@ export function deliveryProcessor(
   project = projectProbe,
 ): (id: string, reference: unknown) => Promise<Outcome> {
   async function load(identity: Identity, digest: string) {
-    const row = await lookupEvent(store.database, identity.eventId);
+    const row = await store.telemetry.observe("db.outbox_lookup", () => lookupEvent(store.database, identity.eventId));
     if (row?.branchId && row.generation === identity.generation && row.proofDigest === digest
         && (row.state === "ENQUEUED" || row.state === "LEASED" || row.state === "COMPLETED")) return row;
     return undefined;
@@ -130,10 +131,13 @@ export function deliveryProcessor(
           input: row,
         };
       },
-    }, async (context, event) => {
-      const reserved = await reserve(store, binding, context, event);
-      return reserved === "RESERVED" ? apply(store, binding, context, event, project) : reserved;
-    });
+    }, (context, event) => store.telemetry.observe("outbox.consume", async () => {
+      recordVerifiedScope(context.auth.tenantId, context.auth.principal.id);
+      const reserved = await store.telemetry.observe("db.outbox_reserve", () => reserve(store, binding, context, event));
+      if (reserved === "DEAD_LETTER") store.telemetry.signal("outbox.dead_letter", "error");
+      return reserved === "RESERVED"
+        ? store.telemetry.observe("db.outbox_apply", () => apply(store, binding, context, event, project)) : reserved;
+    }, event.traceParent, (result) => result === "DENIED" ? "denied" : result === "DEAD_LETTER" ? "error" : "ok"));
 
     try {
       const result = await consume(reference);
