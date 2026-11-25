@@ -82,6 +82,9 @@ export async function withDisposableServer(callback) {
   try {
     assert.ok(["127.0.0.1", "localhost"].includes(container.getHost()), "Use a local Docker engine.");
     const address = new URL(container.getConnectionUri());
+    if (address.protocol === "postgres:") {
+      address.protocol = "postgresql:";
+    }
     address.hostname = "127.0.0.1";
     return await callback(adminUrl(address));
   } finally {
@@ -136,7 +139,8 @@ export async function withCluster(address, callback) {
     });
   } finally {
     try {
-      for (const name of databases.reverse()) await admin.query(`DROP DATABASE ${name} WITH (FORCE)`);
+      // Pool shutdown can resolve while PostgreSQL is still closing a connection.
+      for (const name of databases.reverse()) await admin.query(`DROP DATABASE ${name}`);
       for (const user of roles.reverse()) await admin.query(`DROP ROLE ${user}`);
     } finally {
       await admin.end();
