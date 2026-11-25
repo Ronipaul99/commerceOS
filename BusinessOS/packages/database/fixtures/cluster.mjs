@@ -139,7 +139,8 @@ export async function withCluster(address, callback) {
     });
   } finally {
     try {
-      for (const name of databases.reverse()) await admin.query(`DROP DATABASE ${name} WITH (FORCE)`);
+      // Pool shutdown can resolve while PostgreSQL is still closing a connection.
+      for (const name of databases.reverse()) await admin.query(`DROP DATABASE ${name}`);
       for (const user of roles.reverse()) await admin.query(`DROP ROLE ${user}`);
     } finally {
       await admin.end();
